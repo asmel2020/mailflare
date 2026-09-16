@@ -77,6 +77,7 @@ Add your Cloudflare credentials to `.dev.vars`, then open [http://localhost:3000
 
 - [Deployment and configuration](docs/deployment.md)
 - [API and integrations](docs/api.md)
+- [Connecting an agent over MCP](docs/mcp.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## License
