@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { webhooks } from "@/db/schema";
 import { requireSessionUser } from "@/lib/api/auth";
@@ -19,7 +20,8 @@ export async function loadOwnedWebhook(request: Request, id: string) {
 		.limit(1);
 
 	if (!hook) {
-		return { error: NextResponse.json({ error: "Webhook not found" }, { status: 404 }) } as const;
+		const t = await getTranslations("errors");
+		return { error: NextResponse.json({ error: t("webhookNotFound") }, { status: 404 }) } as const;
 	}
 	return { env, db, user, hook, error: null } as const;
 }

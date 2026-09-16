@@ -1,5 +1,6 @@
 import { eq, inArray } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { folders, messages } from "@/db/schema";
 import { getCurrentUser } from "@/lib/auth/cookies";
@@ -16,15 +17,16 @@ import {
 
 export async function POST(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await getCurrentUser(env, request);
 	if (!user) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		return NextResponse.json({ error: t("unauthorized") }, { status: 401 });
 	}
 
 	const payload = (await request.json()) as BulkMessagePayload;
 	const messageIds = payload.messageIds?.filter(Boolean) ?? [];
 	if (messageIds.length === 0 || !isAllowedBulkMessageAction(payload.action)) {
-		return NextResponse.json({ error: "Invalid bulk message action" }, { status: 400 });
+		return NextResponse.json({ error: t("invalidBulkMessageAction") }, { status: 400 });
 	}
 
 	const status = getStatusForBulkAction(payload.action);
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
 
 	if (payload.action === "folder") {
 		if (!payload.folderId) {
-			return NextResponse.json({ error: "Folder is required" }, { status: 400 });
+			return NextResponse.json({ error: t("folderRequired") }, { status: 400 });
 		}
 		const [folder] = await db
 			.select({ id: folders.id, mailboxId: folders.mailboxId })
@@ -42,11 +44,11 @@ export async function POST(request: Request) {
 			.where(eq(folders.id, payload.folderId))
 			.limit(1);
 		if (!folder) {
-			return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+			return NextResponse.json({ error: t("folderNotFound") }, { status: 404 });
 		}
 		const folderAccess = await getMailboxAccessLevel(db, user, folder.mailboxId);
 		if (!folderAccess?.canManage) {
-			return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+			return NextResponse.json({ error: t("folderNotFound") }, { status: 404 });
 		}
 		folderId = folder.id;
 	} else if (payload.action === "spam" || payload.action === "trash" || payload.action === "inbox" || payload.action === "archive") {
@@ -60,7 +62,7 @@ export async function POST(request: Request) {
 	};
 
 	if (Object.keys(values).length === 0) {
-		return NextResponse.json({ error: "No changes requested" }, { status: 400 });
+		return NextResponse.json({ error: t("noChangesRequested") }, { status: 400 });
 	}
 
 	const selectedMessages = await db.select().from(messages).where(inArray(messages.id, messageIds));
@@ -75,7 +77,7 @@ export async function POST(request: Request) {
 	}
 
 	if (allowedMessageIds.length === 0) {
-		return NextResponse.json({ error: "No accessible messages" }, { status: 404 });
+		return NextResponse.json({ error: t("noAccessibleMessages") }, { status: 404 });
 	}
 	if (payload.action === "spam") {
 		for (const messageId of allowedMessageIds) await applySpamFeedback(env, user, messageId, "spam");

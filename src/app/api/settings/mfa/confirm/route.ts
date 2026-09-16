@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getEnv } from "@/lib/cloudflare";
 import { requireSessionUser } from "@/lib/api/auth";
 import { readJsonBody } from "@/lib/http/request";
@@ -11,8 +12,9 @@ export async function POST(request: Request) {
 	const env = getEnv();
 	const auth = await requireSessionUser(env, request);
 	if (auth.error) return auth.error;
+	const t = await getTranslations("errors");
 	const parsed = mfaConfirmSchema.safeParse(await readJsonBody(request, 16 * 1024).catch(() => null));
-	if (!parsed.success) return NextResponse.json({ error: "Enter the 6-digit code" }, { status: 400 });
+	if (!parsed.success) return NextResponse.json({ error: t("enterSixDigitCode") }, { status: 400 });
 	const result = await confirmMfaEnrollment(env, auth.user, parsed.data.code, getSessionTokenFromRequestHeaders(request));
 	if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 });
 	return NextResponse.json({ ok: true, recoveryCodes: result.recoveryCodes }, { headers: { "Cache-Control": "no-store" } });

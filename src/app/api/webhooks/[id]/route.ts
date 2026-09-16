@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { webhooks } from "@/db/schema";
 import { parseWebhookEvents } from "@/lib/email/webhooks";
 import { webhookUpdateSchema } from "@/lib/validators";
@@ -35,6 +36,7 @@ export async function PATCH(request: Request, { params }: WebhookRouteParams) {
 		return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 	}
 
+	const t = await getTranslations("errors");
 	const updates: Partial<typeof webhooks.$inferInsert> = {};
 	if (parsed.data.url !== undefined) updates.url = parsed.data.url;
 	if (parsed.data.description !== undefined) updates.description = parsed.data.description?.trim() || null;
@@ -43,7 +45,7 @@ export async function PATCH(request: Request, { params }: WebhookRouteParams) {
 	if (parsed.data.maxAttempts !== undefined) updates.maxAttempts = parsed.data.maxAttempts;
 
 	if (Object.keys(updates).length === 0) {
-		return NextResponse.json({ error: "No changes provided" }, { status: 400 });
+		return NextResponse.json({ error: t("noChangesProvided") }, { status: 400 });
 	}
 
 	await loaded.db.update(webhooks).set(updates).where(eq(webhooks.id, id));

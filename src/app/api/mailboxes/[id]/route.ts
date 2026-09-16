@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { mailboxes, users } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
@@ -15,16 +16,17 @@ import { getMailboxUpdateValues, selectMailboxForUser } from "./utils";
 export async function GET(request: Request, { params }: MailboxRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, id);
 	if (!access?.canRead) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 	const [mailbox] = await selectMailboxForUser(db, user.id, id);
 
 	if (!mailbox) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 	const { avatarKey, ownerName, ownerAvatarKey, ...mailboxDetails } = mailbox;
 	const identity = tracksAccountIdentity(mailbox, user.email);
@@ -43,6 +45,7 @@ export async function GET(request: Request, { params }: MailboxRouteParams) {
 export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const parsed = updateMailboxSchema.safeParse(await request.json());
 
@@ -55,7 +58,7 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 	const [existing] = await selectMailboxForUser(db, user.id, id);
 
 	if (!existing || !access?.canManage) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 
 	const updateValues = getMailboxUpdateValues(parsed.data);
@@ -64,7 +67,7 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 	if (tracksAccountIdentity(existing, user.email) && "displayName" in parsed.data) {
 		const name = parsed.data.displayName?.trim();
 		if (!name) {
-			return NextResponse.json({ error: "A valid account name is required" }, { status: 400 });
+			return NextResponse.json({ error: t("validAccountNameRequired") }, { status: 400 });
 		}
 		await syncPersonalIdentity(db, {
 			userId: existing.userId,
@@ -84,7 +87,7 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 		} catch (error) {
 			console.error("ensureMailboxDomainRouting", error);
 			return NextResponse.json(
-				{ error: "Failed to configure inbound routing for all domains. Please try saving again." },
+				{ error: t("failedToConfigureInboundRouting") },
 				{ status: 502 },
 			);
 		}
@@ -114,17 +117,18 @@ export async function PATCH(request: Request, { params }: MailboxRouteParams) {
 export async function DELETE(request: Request, { params }: MailboxRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const db = getDb(env);
 	const [mailbox] = await db.select().from(mailboxes).where(eq(mailboxes.id, id)).limit(1);
-	if (!mailbox) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+	if (!mailbox) return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 
 	let allowed = mailbox.userId === user.id && user.canManageMailboxes;
 	if (!allowed && user.role === "admin") {
 		const [owner] = await db.select({ createdByUserId: users.createdByUserId }).from(users).where(eq(users.id, mailbox.userId)).limit(1);
 		allowed = mailbox.userId === user.id || owner?.createdByUserId === user.id;
 	}
-	if (!allowed) return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+	if (!allowed) return NextResponse.json({ error: t("forbidden") }, { status: 403 });
 
 	try {
 		await removeMailboxDomainRouting(env, db, {
@@ -134,7 +138,7 @@ export async function DELETE(request: Request, { params }: MailboxRouteParams) {
 			useAllDomains: mailbox.useAllDomains,
 		});
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Failed to remove Cloudflare routing rule";
+		const message = err instanceof Error ? err.message : t("failedToRemoveRoutingRule");
 		return NextResponse.json({ error: message }, { status: 502 });
 	}
 

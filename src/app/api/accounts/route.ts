@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { mailboxes, users } from "@/db/schema";
 import { hashPassword } from "@/lib/auth/password";
@@ -28,6 +29,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
+	const t = await getTranslations("errors");
 
 	const parsed = createUserAccountSchema.safeParse(await request.json());
 	if (!parsed.success) {
@@ -37,13 +39,13 @@ export async function POST(request: Request) {
 	const input: CreateUserAccountInput = parsed.data;
 	const db = getDb(access.env);
 	const domain = await getDomainForAdmin(db, access.user!.id, input.domainId);
-	if (!domain) return NextResponse.json({ error: "Domain not found" }, { status: 404 });
+	if (!domain) return NextResponse.json({ error: t("domainNotFound") }, { status: 404 });
 	const username = input.username.toLowerCase().trim();
 	const email = `${username}@${domain.hostname}`;
 	const [existing] = await db.select({ id: users.id }).from(users).where(eq(users.email, email)).limit(1);
-	if (existing) return NextResponse.json({ error: "Email already registered" }, { status: 409 });
+	if (existing) return NextResponse.json({ error: t("emailAlreadyRegistered") }, { status: 409 });
 	const mailbox = await getExistingMailbox(db, domain.id, username);
-	if (mailbox) return NextResponse.json({ error: "Email address is already assigned" }, { status: 409 });
+	if (mailbox) return NextResponse.json({ error: t("emailAddressAlreadyAssigned") }, { status: 409 });
 
 	const userId = newId("usr");
 	try {
@@ -80,7 +82,7 @@ export async function POST(request: Request) {
 		return NextResponse.json({ account: accountListItemFromUser(account) }, { status: 201 });
 	} catch (error) {
 		await db.delete(users).where(eq(users.id, userId));
-		const message = error instanceof Error ? error.message : "Failed to create account mailbox";
+		const message = error instanceof Error ? error.message : t("accountMailboxCreateFailed");
 		return NextResponse.json({ error: message }, { status: 502 });
 	}
 }

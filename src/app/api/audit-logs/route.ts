@@ -1,6 +1,7 @@
 import { desc, eq, inArray } from "drizzle-orm";
 import { alias } from "drizzle-orm/sqlite-core";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { auditLogs, domains, mailboxes, users } from "@/db/schema";
 import { assertAdmin } from "@/lib/auth/admin";
@@ -9,11 +10,12 @@ import { getEnv } from "@/lib/cloudflare";
 
 export async function GET(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const admin = await requireUser(env, request);
 	try {
 		assertAdmin(admin);
 	} catch {
-		return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+		return NextResponse.json({ error: t("forbidden") }, { status: 403 });
 	}
 
 	const url = new URL(request.url);

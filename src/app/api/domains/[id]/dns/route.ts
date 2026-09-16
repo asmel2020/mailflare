@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getEnv } from "@/lib/cloudflare";
 import { requireUser } from "@/lib/auth/cookies";
 import { getDomainDns, getDomainForUser } from "@/lib/domains/service";
@@ -10,7 +11,8 @@ export async function GET(request: Request, { params }: Params) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
 	const domain = await getDomainForUser(env, user.id, id);
-	if (!domain) return NextResponse.json({ error: "Not found" }, { status: 404 });
+	const t = await getTranslations("errors");
+	if (!domain) return NextResponse.json({ error: t("notFound") }, { status: 404 });
 
 	try {
 		const dns = await getDomainDns(env, domain);
@@ -19,7 +21,7 @@ export async function GET(request: Request, { params }: Params) {
 			dns,
 		});
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Failed to fetch DNS";
+		const message = err instanceof Error ? err.message : t("failedToFetchDns");
 		return NextResponse.json({ error: message }, { status: 500 });
 	}
 }

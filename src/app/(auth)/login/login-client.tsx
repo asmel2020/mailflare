@@ -68,7 +68,7 @@ export function LoginClient() {
       if (!ok) {
         setError(data.error ?? tm("invalid"));
         // An expired challenge sends the user back to the password step.
-        if (data.error?.includes("expired")) {
+        if (data.code === "challenge-expired") {
           setChallengeToken(null);
           setCode("");
         }

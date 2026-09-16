@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getEnv } from "@/lib/cloudflare";
 import { requireUser } from "@/lib/auth/cookies";
 import { sendEmailSchema } from "@/lib/validators";
@@ -15,12 +16,13 @@ import { userOwnsDraft } from "@/app/api/drafts/utils";
 export async function POST(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
+	const t = await getTranslations("errors");
 	let input;
 	try {
 		input = await parseSendRequest(request);
 	} catch (error) {
 		const status = error instanceof RequestBodyTooLargeError ? 413 : 400;
-		return NextResponse.json({ error: "Invalid send request" }, { status });
+		return NextResponse.json({ error: t("invalidSendRequest") }, { status });
 	}
 	const { attachments = [], draftId, ...fields } = input;
 	const parsed = sendEmailSchema.omit({ attachments: true }).safeParse(fields);
@@ -34,7 +36,7 @@ export async function POST(request: Request) {
 		const db = getDb(env);
 		const [draft] = await db.select().from(messages).where(eq(messages.id, draftId)).limit(1);
 		if (!userOwnsDraft(draft, user.id)) {
-			return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+			return NextResponse.json({ error: t("draftNotFound") }, { status: 404 });
 		}
 		attachments.push(...(await loadMessageAttachmentContents(env, draftId)));
 	}
@@ -47,7 +49,7 @@ export async function POST(request: Request) {
 		});
 		return NextResponse.json(result);
 	} catch (err) {
-		const message = err instanceof Error ? err.message : "Send failed";
+		const message = err instanceof Error ? err.message : t("sendFailed");
 		return NextResponse.json({ error: message }, { status: getSendErrorStatus(message) });
 	}
 }

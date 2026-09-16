@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
 import { updateManagedAccountSchema } from "@/lib/validators";
@@ -12,10 +13,11 @@ import { deleteUserSessions } from "@/lib/auth/session";
 export async function GET(request: Request, { params }: AccountRouteParams) {
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
+	const t = await getTranslations("errors");
 	const { id } = await params;
 	const account = await selectAccountById(getDb(access.env), id);
 	if (!account || (account.id !== access.user!.id && account.createdByUserId !== access.user!.id)) {
-		return NextResponse.json({ error: "Account not found" }, { status: 404 });
+		return NextResponse.json({ error: t("accountNotFound") }, { status: 404 });
 	}
 	return NextResponse.json({
 		account: {
@@ -35,17 +37,18 @@ export async function GET(request: Request, { params }: AccountRouteParams) {
 export async function PATCH(request: Request, { params }: AccountRouteParams) {
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
+	const t = await getTranslations("errors");
 	const { id } = await params;
 	const db = getDb(access.env);
 	const account = await selectAccountById(db, id);
 	if (!account || (account.id !== access.user!.id && account.createdByUserId !== access.user!.id)) {
-		return NextResponse.json({ error: "Account not found" }, { status: 404 });
+		return NextResponse.json({ error: t("accountNotFound") }, { status: 404 });
 	}
 	const parsed = updateManagedAccountSchema.safeParse(await request.json());
 	if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 	const canForwardEmail = (await getLicenseEntitlements(access.env)).canForwardEmail;
 	if (!canForwardEmail && parsed.data.forwardingEmail && parsed.data.forwardingEmail !== account.forwardingEmail) {
-		return NextResponse.json({ error: "A Pro or Team license is required for email forwarding" }, { status: 403 });
+		return NextResponse.json({ error: t("forwardingLicenseRequired") }, { status: 403 });
 	}
 	await updateAccountCredentials(db, id, { name: parsed.data.name, password: parsed.data.password ?? null });
 	// A password set by an admin is a reset: whoever held the old one is signed out.

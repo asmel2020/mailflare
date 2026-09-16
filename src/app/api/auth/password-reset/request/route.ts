@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getEnv } from "@/lib/cloudflare";
 import { passwordResetRequestSchema } from "@/lib/validators";
 import { allowLoginAttempt } from "@/lib/auth/rate-limit";
@@ -13,22 +14,23 @@ import { requestPasswordReset } from "@/lib/auth/password-reset";
  */
 export async function POST(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	let body: unknown;
 	try {
 		body = await readJsonBody(request, 16 * 1024);
 	} catch (error) {
 		const status = error instanceof RequestBodyTooLargeError ? 413 : 400;
-		return NextResponse.json({ error: "Invalid request" }, { status });
+		return NextResponse.json({ error: t("invalidRequest") }, { status });
 	}
 	const parsed = passwordResetRequestSchema.safeParse(body);
 	if (!parsed.success) {
-		return NextResponse.json({ error: "Enter the email address you sign in with" }, { status: 400 });
+		return NextResponse.json({ error: t("enterEmail") }, { status: 400 });
 	}
 	if (!(await allowLoginAttempt(env, request))) {
-		return NextResponse.json({ error: "Too many attempts. Try again shortly." }, { status: 429, headers: { "Retry-After": "60" } });
+		return NextResponse.json({ error: t("tooManyAttempts") }, { status: 429, headers: { "Retry-After": "60" } });
 	}
 	if (!(await verifyTurnstileToken(env, request, (body as Record<string, unknown>).turnstileToken))) {
-		return NextResponse.json({ error: "Verification failed. Please try again." }, { status: 400 });
+		return NextResponse.json({ error: t("verificationFailed") }, { status: 400 });
 	}
 
 	const origin = env.APP_URL?.trim() || new URL(request.url).origin;

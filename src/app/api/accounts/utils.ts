@@ -1,5 +1,6 @@
 import { and, desc, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import type { getDb } from "@/db";
 import { domains, mailboxes, users } from "@/db/schema";
 import { assertAdmin } from "@/lib/auth/admin";
@@ -70,6 +71,7 @@ export function accountListItemFromUser(user: {
 
 export async function requireTeamAdmin(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	try {
 		const user = await requireUser(env, request);
 		assertAdmin(user);
@@ -77,11 +79,11 @@ export async function requireTeamAdmin(request: Request) {
 			return {
 				env,
 				user,
-				error: NextResponse.json({ error: "A Team license is required to manage accounts" }, { status: 403 }),
+				error: NextResponse.json({ error: t("teamLicenseRequired") }, { status: 403 }),
 			};
 		}
 		return { env, user, error: null };
 	} catch {
-		return { env, user: null, error: NextResponse.json({ error: "Forbidden" }, { status: 403 }) };
+		return { env, user: null, error: NextResponse.json({ error: t("forbidden") }, { status: 403 }) };
 	}
 }
