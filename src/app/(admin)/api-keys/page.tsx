@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { KeyRound, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -23,6 +24,7 @@ import { parseApiKeyScopes } from "./utils";
 
 export default function ApiKeysPage() {
 	const qc = useQueryClient();
+	const t = useTranslations("apiKeysAdmin");
 	const [name, setName] = useState("");
 	const [newKey, setNewKey] = useState<string | null>(null);
 	const [createOpen, setCreateOpen] = useState(false);
@@ -43,7 +45,7 @@ export default function ApiKeysPage() {
 				body: JSON.stringify({ name, scopes: ["send", "read"] }),
 			});
 			const json = (await res.json()) as { key?: string };
-			if (!res.ok) throw new Error("Failed");
+			if (!res.ok) throw new Error(t("failed"));
 			setNewKey(json.key ?? null);
 			setName("");
 		},
@@ -56,29 +58,29 @@ export default function ApiKeysPage() {
 	return (
 		<div className="space-y-6">
 			<div className="flex items-center justify-between gap-4">
-				<h1 className="text-2xl font-semibold">API Keys</h1>
+				<h1 className="text-2xl font-semibold">{t("title")}</h1>
 				<Dialog open={createOpen} onOpenChange={setCreateOpen}>
 					<DialogTrigger asChild>
 						<Button>
 							<Plus className="h-4 w-4" />
-							New API key
+							{t("newApiKey")}
 						</Button>
 					</DialogTrigger>
 					<DialogContent>
 						<DialogHeader>
-							<DialogTitle>Create API key</DialogTitle>
-							<DialogDescription>Create a key with send and read permissions.</DialogDescription>
+							<DialogTitle>{t("createTitle")}</DialogTitle>
+							<DialogDescription>{t("createDescription")}</DialogDescription>
 						</DialogHeader>
 						<div className="space-y-4">
 							<div className="space-y-2">
-								<Label>Name</Label>
-								<Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Production app" />
+								<Label>{t("name")}</Label>
+								<Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("namePlaceholder")} />
 							</div>
 							{create.isError && (
 								<p className="text-sm text-red-600">{(create.error as Error).message}</p>
 							)}
 							<Button onClick={() => create.mutate()} disabled={!name || create.isPending}>
-								{create.isPending ? "Creating..." : "Create key"}
+								{create.isPending ? t("creating") : t("createKey")}
 							</Button>
 						</div>
 					</DialogContent>
@@ -87,21 +89,21 @@ export default function ApiKeysPage() {
 			{newKey && (
 				<Card className="border-blue-600/10 bg-blue-400/10">
 					<CardContent className="pt-6">
-						<p className="text-sm font-medium text-blue-600">Copy your key now:</p>
+						<p className="text-sm font-medium text-blue-600">{t("copyKey")}</p>
 						<code className="block mt-2 text-xs break-all font-bold">{newKey}</code>
 					</CardContent>
 				</Card>
 			)}
 			<section className="space-y-3">
 				<div className="flex items-center justify-between">
-					<span className="text-sm text-neutral-500">{(data?.apiKeys ?? []).length} total</span>
+					<span className="text-sm text-neutral-500">{t("total", { count: (data?.apiKeys ?? []).length })}</span>
 				</div>
 				{isLoading && (
 					<CardGridSkeleton />
 				)}
 				{!isLoading && (data?.apiKeys ?? []).length === 0 && (
 					<p className="rounded-lg border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-500">
-						No API keys yet
+						{t("noKeys")}
 					</p>
 				)}
 				<div className="grid gap-3">

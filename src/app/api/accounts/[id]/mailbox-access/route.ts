@@ -1,16 +1,17 @@
 import { NextResponse } from "next/server";
-
-const accountsRemovedResponse = () =>
-	NextResponse.json({ error: "Multiple accounts are not available in this build" }, { status: 410 });
+import { getTranslations } from "next-intl/server";
 
 export async function GET() {
-	return accountsRemovedResponse();
+	const t = await getTranslations("errors");
+	return NextResponse.json({ error: t("multipleAccountsUnavailable") }, { status: 410 });
 }
 
 export async function POST() {
-	return accountsRemovedResponse();
+	const t = await getTranslations("errors");
+	return NextResponse.json({ error: t("multipleAccountsUnavailable") }, { status: 410 });
 }
 
 export async function DELETE() {
-	return accountsRemovedResponse();
+	const t = await getTranslations("errors");
+	return NextResponse.json({ error: t("multipleAccountsUnavailable") }, { status: 410 });
 }

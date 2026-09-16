@@ -1,10 +1,21 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Search, CornerDownLeft } from "lucide-react";
 import type { CommandItem } from "./types";
 import { filterCommands, groupCommandsByCategory } from "./command-palette-utils";
 import { CommandPaletteItem } from "./command-palette-item";
+
+const categoryKeys: Record<string, string> = {
+  Actions: "categoryActions",
+  Navigation: "categoryNavigation",
+  Settings: "categorySettings",
+  Mailboxes: "categoryMailboxes",
+  General: "categoryGeneral",
+  Composing: "categoryComposing",
+  Selection: "categorySelection",
+};
 
 interface CommandPaletteProps {
   isOpen: boolean;
@@ -19,6 +30,7 @@ function CommandPaletteDialog({
   onClose: () => void;
   commands: CommandItem[];
 }) {
+  const t = useTranslations("shortcuts");
   const [query, setQuery] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -83,7 +95,7 @@ function CommandPaletteDialog({
               setQuery(e.target.value);
               setSelectedIndex(0);
             }}
-            placeholder="Type a command or search actions..."
+            placeholder={t("palettePlaceholder")}
             className="w-full bg-transparent text-neutral-900 dark:text-neutral-100 placeholder-neutral-400 text-[15px] focus:outline-none"
           />
           <kbd className="px-2 py-0.5 text-xs font-semibold text-neutral-400 bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-md shadow-2xs">
@@ -95,13 +107,13 @@ function CommandPaletteDialog({
         <div className="max-h-80 overflow-y-auto p-2">
           {filteredCommands.length === 0 ? (
             <div className="p-8 text-center text-sm text-neutral-400">
-              No matching commands found for &ldquo;{query}&rdquo;
+              {t("noResults", { query })}
             </div>
           ) : (
             Object.entries(grouped).map(([category, items]) => (
               <div key={category} className="mb-2 last:mb-0">
                 <div className="px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-neutral-400">
-                  {category}
+                  {t(categoryKeys[category] ?? "categoryGeneral")}
                 </div>
                 {items.map((item) => {
                   const isCurrent = flatIndex === activeIndex;
@@ -133,14 +145,14 @@ function CommandPaletteDialog({
               <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-800 rounded mr-1 text-[10px]">
                 ↑↓
               </kbd>
-              to navigate
+              {t("toNavigate")}
             </span>
             <span className="flex items-center">
               <CornerDownLeft className="w-3 h-3 mr-1 inline" />
-              to select
+              {t("toSelect")}
             </span>
           </div>
-          <span className="text-[11px]">Mailflare Actions</span>
+          <span className="text-[11px]">{t("paletteFooter")}</span>
         </div>
       </div>
     </div>

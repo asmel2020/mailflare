@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { ZodError } from "zod";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
@@ -12,6 +13,7 @@ import { parseUpdateForwardingEmailRequest } from "./utils";
 export async function PATCH(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
+	const t = await getTranslations("errors");
 	let input: UpdateForwardingEmailInput;
 	try {
 		input = await parseUpdateForwardingEmailRequest(request);
@@ -19,11 +21,11 @@ export async function PATCH(request: Request) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: error.flatten() }, { status: 400 });
 		}
-		return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+		return NextResponse.json({ error: t("invalidRequest") }, { status: 400 });
 	}
 
 	if (!(await getLicenseEntitlements(env)).canForwardEmail) {
-		return NextResponse.json({ error: "A Pro or Team license is required for email forwarding" }, { status: 403 });
+		return NextResponse.json({ error: t("proOrTeamLicenseRequiredForForwarding") }, { status: 403 });
 	}
 
 	await getDb(env)

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
@@ -8,15 +9,16 @@ import type { BlockContactRequest } from "./types";
 
 export async function POST(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const body = (await request.json()) as BlockContactRequest;
 	if (!body.mailboxId || !body.address?.trim()) {
-		return NextResponse.json({ error: "Mailbox and contact are required" }, { status: 400 });
+		return NextResponse.json({ error: t("mailboxAndContactRequired") }, { status: 400 });
 	}
 
 	const access = await getMailboxAccessLevel(getDb(env), user, body.mailboxId);
 	if (!access?.canManage) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 
 	const contact = await blockContact(env, {

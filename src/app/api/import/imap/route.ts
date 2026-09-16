@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { and, eq } from "drizzle-orm";
 import { getDb } from "@/db";
 import { folders } from "@/db/schema";
@@ -15,6 +16,7 @@ import { parseImapImportRequest } from "./utils";
 
 export async function POST(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	let input: ReturnType<typeof parseImapImportRequest>;
 	try {
@@ -22,12 +24,12 @@ export async function POST(request: Request) {
 		input = parseImapImportRequest(body);
 	} catch (error) {
 		const status = error instanceof RequestBodyTooLargeError ? 413 : 400;
-		return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid IMAP import request" }, { status });
+		return NextResponse.json({ error: error instanceof Error ? error.message : t("invalidImapImportRequest") }, { status });
 	}
 
 	const access = await getMailboxAccessLevel(getDb(env), user, input.mailboxId);
 	if (!access?.canManage) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 	if (input.destination.type === "folder") {
 		const db = getDb(env);
@@ -37,7 +39,7 @@ export async function POST(request: Request) {
 			.where(and(eq(folders.id, input.destination.folderId), eq(folders.mailboxId, access.mailbox.id)))
 			.limit(1);
 		if (!folder) {
-			return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+			return NextResponse.json({ error: t("folderNotFound") }, { status: 404 });
 		}
 	}
 
@@ -52,7 +54,7 @@ export async function POST(request: Request) {
 		return NextResponse.json(result);
 	} catch (error) {
 		return NextResponse.json(
-			{ error: error instanceof Error ? error.message : "IMAP import failed" },
+			{ error: error instanceof Error ? error.message : t("imapImportFailed") },
 			{ status: 502 },
 		);
 	}

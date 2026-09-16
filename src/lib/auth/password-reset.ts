@@ -1,4 +1,5 @@
 import { and, eq, gt, isNull } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { passwordResetTokens, users } from "@/db/schema";
 import { newId } from "@/lib/ids";
@@ -8,6 +9,7 @@ import { getBranding } from "@/lib/branding/service";
 import { sendSystemEmail } from "@/lib/email/system-mail";
 import { createAuditLog } from "@/lib/mailboxes/audit";
 import { escapeHtml } from "@/lib/auth/password-reset-utils";
+import { defaultLocale, normalizeLocale } from "@/i18n/config";
 
 const TOKEN_MINUTES = 30;
 
@@ -31,18 +33,19 @@ export async function requestPasswordReset(env: CloudflareEnv, email: string, or
 
 	const link = `${origin}/reset-password?token=${encodeURIComponent(token)}`;
 	const { appName } = await getBranding(env);
+	// The recovery address belongs to the account owner, so the mail goes out in their language.
+	const t = await getTranslations({
+		locale: normalizeLocale(user.locale) ?? defaultLocale,
+		namespace: "emails",
+	});
+	const requested = t("resetRequested", { email: user.email, appName });
+	const openLink = t("resetOpenLink", { minutes: TOKEN_MINUTES });
+	const ignore = t("resetIgnore");
 	const sent = await sendSystemEmail(env, {
 		to: user.resetEmail,
-		subject: `Reset your ${appName} password`,
-		text: [
-			`Someone asked to reset the password for ${user.email} on ${appName}.`,
-			"",
-			`Open this link within ${TOKEN_MINUTES} minutes to choose a new password:`,
-			link,
-			"",
-			"If that was not you, you can ignore this message; the password stays as it is.",
-		].join("\n"),
-		html: `<p>Someone asked to reset the password for <b>${escapeHtml(user.email)}</b> on ${escapeHtml(appName)}.</p><p>Open this link within ${TOKEN_MINUTES} minutes to choose a new password:</p><p><a href="${escapeHtml(link)}">${escapeHtml(link)}</a></p><p>If that was not you, you can ignore this message; the password stays as it is.</p>`,
+		subject: t("resetSubject", { appName }),
+		text: [requested, "", openLink, link, "", ignore].join("\n"),
+		html: `<p>${escapeHtml(requested)}</p><p>${escapeHtml(openLink)}</p><p><a href="${escapeHtml(link)}">${escapeHtml(link)}</a></p><p>${escapeHtml(ignore)}</p>`,
 	});
 	if (!sent) console.warn("Password reset requested but no domain can send mail; link not delivered");
 }

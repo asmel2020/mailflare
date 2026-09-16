@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -8,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { updateMailboxSignature } from "./utils";
 
 export function MailboxSignatureForm() {
+	const t = useTranslations("signature");
 	const { selectedMailbox, setSelectedMailbox, isLoading } = useSelectedMailbox();
 	const [signature, setSignature] = useState("");
 	const [savedSignature, setSavedSignature] = useState("");
@@ -31,16 +33,16 @@ export function MailboxSignatureForm() {
 			setSignature(saved);
 			setSavedSignature(saved);
 			setSelectedMailbox({ ...selectedMailbox, signature: saved });
-			setStatus("Saved");
+			setStatus(t("saved"));
 		} catch (error) {
-			setStatus(error instanceof Error ? error.message : "Failed to update signature");
+			setStatus(error instanceof Error ? error.message : t("failedToUpdate"));
 		} finally {
 			setSaving(false);
 		}
 	}
 
-	if (isLoading) return <p className="text-sm text-neutral-500">Loading inbox…</p>;
-	if (!selectedMailbox) return <p className="text-sm text-neutral-500">Select an inbox to configure its signature.</p>;
+	if (isLoading) return <p className="text-sm text-neutral-500">{t("loadingInbox")}</p>;
+	if (!selectedMailbox) return <p className="text-sm text-neutral-500">{t("selectInboxToConfigure")}</p>;
 
 	const address = `${selectedMailbox.localPart}@${selectedMailbox.hostname}`;
 	const canManage = selectedMailbox.permission === "full_access";
@@ -48,24 +50,24 @@ export function MailboxSignatureForm() {
 	return (
 		<form onSubmit={onSubmit} className="space-y-4">
 			<div className="space-y-2">
-				<Label htmlFor="mailboxSignature">Signature for {address}</Label>
+				<Label htmlFor="mailboxSignature">{t("signatureFor", { address })}</Label>
 				<Textarea
 					id="mailboxSignature"
 					value={signature}
 					onChange={(event) => setSignature(event.target.value)}
-					placeholder={"Your name\nRole or company\nContact details"}
+					placeholder={t("signaturePlaceholder")}
 					rows={6}
 					disabled={!canManage || saving}
 				/>
 				<p className="text-xs leading-5 text-neutral-500">
-					This signature is added when composing from the selected inbox.
+					{t("signatureHint")}
 				</p>
 			</div>
 			<div className="flex items-center gap-3">
 				<Button type="submit" disabled={!canManage || saving || signature.trim() === savedSignature}>
-					{saving ? "Saving..." : "Save signature"}
+					{saving ? t("saving") : t("saveSignature")}
 				</Button>
-				{!canManage && <p className="text-sm text-neutral-500">Full access is required to edit this signature.</p>}
+				{!canManage && <p className="text-sm text-neutral-500">{t("fullAccessRequired")}</p>}
 				{status && <p className="text-sm text-neutral-500">{status}</p>}
 			</div>
 		</form>

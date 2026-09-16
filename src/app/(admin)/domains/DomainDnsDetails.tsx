@@ -1,17 +1,24 @@
+import { useTranslations } from "next-intl";
 import { AlertTriangle, Check } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDnsRecordLabel } from "./domain-dns-details-utils";
 import type { DomainDnsDetailsProps } from "./types";
 
 export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps) {
+	const t = useTranslations("domainsAdmin");
+	const labels = {
+		domain: t("dnsRecordDomain"),
+		priority: (value: number) => t("dnsRecordPriority", { value }),
+	};
+
 	return (
 		<Card className="rounded-3xl border-0 bg-white p-6">
 			<CardHeader className="py-0">
-				<CardTitle>DNS — {domain.hostname}</CardTitle>
+				<CardTitle>{t("dnsTitle", { hostname: domain.hostname })}</CardTitle>
 			</CardHeader>
 			<CardContent className="gap-6 pt-5">
 				<section className="space-y-3">
-					<h2 className="text-sm font-medium text-neutral-900">Email Routing</h2>
+					<h2 className="text-sm font-medium text-neutral-900">{t("emailRouting")}</h2>
 					<ul className="space-y-2">
 						{dns.routing.records.map((record, index) => (
 							<li
@@ -19,7 +26,7 @@ export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps)
 								className="flex items-start gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm text-green-800"
 							>
 								<Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
-								<span className="break-all">{getDnsRecordLabel(record)}</span>
+								<span className="break-all">{getDnsRecordLabel(record, labels)}</span>
 							</li>
 						))}
 						{dns.routing.missing.map((record, index) => (
@@ -28,7 +35,7 @@ export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps)
 								className="flex items-start gap-2 rounded-xl bg-red-50 px-3 py-2 text-sm text-red-800"
 							>
 								<AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-600" />
-								<span className="break-all">{getDnsRecordLabel(record)}</span>
+								<span className="break-all">{getDnsRecordLabel(record, labels)}</span>
 							</li>
 						))}
 						{dns.routing.records.length === 0 && dns.routing.missing.length === 0 && (
@@ -38,14 +45,14 @@ export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps)
 								) : (
 									<AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
 								)}
-								{domain.routingEnabled ? "Email routing is configured" : "No routing DNS records found"}
+								{domain.routingEnabled ? t("routingConfigured") : t("noRoutingRecords")}
 							</li>
 						)}
 					</ul>
 				</section>
 
 				<section className="space-y-3 mt-8">
-					<h2 className="text-sm font-medium text-neutral-900">Email Sending</h2>
+					<h2 className="text-sm font-medium text-neutral-900">{t("emailSending")}</h2>
 					<ul className="space-y-2">
 						{dns.sending.map((record, index) => (
 							<li
@@ -53,7 +60,7 @@ export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps)
 								className="flex items-start gap-2 rounded-xl bg-green-50 px-3 py-2 text-sm text-green-800"
 							>
 								<Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
-								<span className="break-all">{getDnsRecordLabel(record)}</span>
+								<span className="break-all">{getDnsRecordLabel(record, labels)}</span>
 							</li>
 						))}
 						{dns.sending.length === 0 && (
@@ -63,7 +70,7 @@ export default function DomainDnsDetails({ domain, dns }: DomainDnsDetailsProps)
 								) : (
 									<AlertTriangle className="h-4 w-4 shrink-0 text-red-600" />
 								)}
-								{domain.sendingEnabled ? "Email sending is configured" : "No sending DNS records found"}
+								{domain.sendingEnabled ? t("sendingConfigured") : t("noSendingRecords")}
 							</li>
 						)}
 					</ul>

@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ClipboardEvent, KeyboardEvent } from "react";
+import { useTranslations } from "next-intl";
 import {
 	Bold,
 	Italic,
@@ -18,13 +19,13 @@ import { cn } from "@/lib/utils";
 import type { RichTextEditorProps, ToolbarCommand } from "./rich-text-editor-types";
 
 const COMMANDS: ToolbarCommand[] = [
-	{ command: "bold", label: "Bold (⌘B)", icon: Bold },
-	{ command: "italic", label: "Italic (⌘I)", icon: Italic },
-	{ command: "underline", label: "Underline (⌘U)", icon: Underline },
-	{ command: "strikeThrough", label: "Strikethrough", icon: Strikethrough },
-	{ command: "insertUnorderedList", label: "Bulleted list", icon: List },
-	{ command: "insertOrderedList", label: "Numbered list", icon: ListOrdered },
-	{ command: "formatBlock", label: "Quote", icon: Quote, value: "blockquote" },
+	{ command: "bold", label: "boldShortcut", icon: Bold },
+	{ command: "italic", label: "italicShortcut", icon: Italic },
+	{ command: "underline", label: "underlineShortcut", icon: Underline },
+	{ command: "strikeThrough", label: "strikethrough", icon: Strikethrough },
+	{ command: "insertUnorderedList", label: "bulletedList", icon: List },
+	{ command: "insertOrderedList", label: "numberedList", icon: ListOrdered },
+	{ command: "formatBlock", label: "quote", icon: Quote, value: "blockquote" },
 ];
 
 /**
@@ -43,6 +44,7 @@ export function RichTextEditor({
 	toolbarStart,
 	toolbarEnd,
 }: RichTextEditorProps) {
+	const t = useTranslations("compose");
 	const editorRef = useRef<HTMLDivElement | null>(null);
 	const [active, setActive] = useState<Record<string, boolean>>({});
 	const [linkOpen, setLinkOpen] = useState(false);
@@ -135,7 +137,7 @@ export function RichTextEditor({
 					id={id}
 					role="textbox"
 					aria-multiline="true"
-					aria-label="Message body"
+					aria-label={t("messageBody")}
 					contentEditable={!disabled}
 					suppressContentEditableWarning
 					data-placeholder={placeholder}
@@ -156,7 +158,7 @@ export function RichTextEditor({
 							onClick={() => setShowQuoted((open) => !open)}
 							aria-expanded={showQuoted}
 							className="rounded-full border border-neutral-200 bg-neutral-100 px-2 text-xs leading-5 text-neutral-500 hover:bg-neutral-200"
-							title={showQuoted ? "Hide quoted text" : "Show quoted text"}
+							title={showQuoted ? t("hideQuoted") : t("showQuoted")}
 						>
 							•••
 						</button>
@@ -172,10 +174,10 @@ export function RichTextEditor({
 			<div className="relative flex items-center gap-0.5 border-t border-neutral-100 px-4 py-3">
 				{toolbarStart}
 				{COMMANDS.map((item) => (
-					<Tooltip key={item.command} label={item.label}>
+					<Tooltip key={item.command} label={t(item.label)}>
 						<button
 							type="button"
-							aria-label={item.label}
+							aria-label={t(item.label)}
 							aria-pressed={!!active[item.command]}
 							disabled={disabled}
 							onMouseDown={(event) => event.preventDefault()}
@@ -189,10 +191,10 @@ export function RichTextEditor({
 						</button>
 					</Tooltip>
 				))}
-				<Tooltip label="Insert link (⌘K)">
+				<Tooltip label={t("insertLinkShortcut")}>
 					<button
 						type="button"
-						aria-label="Insert link"
+						aria-label={t("insertLink")}
 						disabled={disabled}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={openLink}
@@ -201,10 +203,10 @@ export function RichTextEditor({
 						<Link2 className="h-4 w-4" />
 					</button>
 				</Tooltip>
-				<Tooltip label="Clear formatting">
+				<Tooltip label={t("clearFormatting")}>
 					<button
 						type="button"
-						aria-label="Clear formatting"
+						aria-label={t("clearFormatting")}
 						disabled={disabled}
 						onMouseDown={(event) => event.preventDefault()}
 						onClick={() => run("removeFormat")}
@@ -233,7 +235,7 @@ export function RichTextEditor({
 							className="h-8 w-64 rounded-md border border-neutral-200 px-2 text-sm outline-none focus:border-blue-400"
 						/>
 						<button type="submit" className="rounded-md bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700">
-							Apply
+							{t("apply")}
 						</button>
 					</form>
 				)}

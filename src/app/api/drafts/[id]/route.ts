@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { eq } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getDb } from "@/db";
@@ -15,12 +16,13 @@ import { deleteMessageAttachmentObjects, listMessageAttachments } from "@/lib/em
 export async function GET(request: Request, { params }: DraftRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const db = getDb(env);
 	const draft = await selectDraftWithBody(db, user.id, id);
 
 	if (!draft) {
-		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+		return NextResponse.json({ error: t("draftNotFound") }, { status: 404 });
 	}
 
 	const attachments = await listMessageAttachments(env, id);
@@ -30,19 +32,20 @@ export async function GET(request: Request, { params }: DraftRouteParams) {
 export async function PATCH(request: Request, { params }: DraftRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	let input: DraftPayload;
 	try {
 		input = await readJsonBody<DraftPayload>(request, 1024 * 1024);
 	} catch (error) {
 		const status = error instanceof RequestBodyTooLargeError ? 413 : 400;
-		return NextResponse.json({ error: "Invalid draft request" }, { status });
+		return NextResponse.json({ error: t("invalidDraftRequest") }, { status });
 	}
 	const db = getDb(env);
 	const [draft] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
 	if (!userOwnsDraft(draft, user.id)) {
-		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+		return NextResponse.json({ error: t("draftNotFound") }, { status: 404 });
 	}
 	const sender = await getDraftSender(env, user.id, input);
 	if ("error" in sender) {
@@ -72,12 +75,13 @@ export async function PATCH(request: Request, { params }: DraftRouteParams) {
 export async function DELETE(request: Request, { params }: DraftRouteParams) {
 	const { id } = await params;
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const db = getDb(env);
 	const [draft] = await db.select().from(messages).where(eq(messages.id, id)).limit(1);
 
 	if (!userOwnsDraft(draft, user.id)) {
-		return NextResponse.json({ error: "Draft not found" }, { status: 404 });
+		return NextResponse.json({ error: t("draftNotFound") }, { status: 404 });
 	}
 
 	// Rows cascade with the draft; the R2 objects do not.

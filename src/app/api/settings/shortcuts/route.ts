@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { ZodError } from "zod";
 import { getDb } from "@/db";
 import { users } from "@/db/schema";
@@ -21,6 +22,7 @@ export async function PATCH(request: Request) {
 	const auth = await requireSessionUser(env, request);
 	if (auth.error) return auth.error;
 
+	const t = await getTranslations("errors");
 	let input: UpdateShortcutsSettingsInput;
 	try {
 		input = await parseUpdateShortcutsSettingsRequest(request);
@@ -28,7 +30,7 @@ export async function PATCH(request: Request) {
 		if (error instanceof ZodError) {
 			return NextResponse.json({ error: error.flatten() }, { status: 400 });
 		}
-		return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+		return NextResponse.json({ error: t("invalidRequest") }, { status: 400 });
 	}
 
 	await getDb(env)

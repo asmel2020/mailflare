@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { runDelivery } from "@/lib/email/webhooks";
 import { loadOwnedWebhook } from "../../../utils";
 import type { WebhookDeliveryRouteParams } from "../../../types";
@@ -10,7 +11,8 @@ export async function POST(request: Request, { params }: WebhookDeliveryRoutePar
 
 	const result = await runDelivery(loaded.env, deliveryId, { userId: loaded.user.id });
 	if (!result) {
-		return NextResponse.json({ error: "Delivery not found" }, { status: 404 });
+		const t = await getTranslations("errors");
+		return NextResponse.json({ error: t("deliveryNotFound") }, { status: 404 });
 	}
 
 	return NextResponse.json({ status: result.status });

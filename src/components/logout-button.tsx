@@ -1,10 +1,12 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { logoutClientSession } from "@/lib/auth/logout";
 
 export function LogoutButton() {
+	const t = useTranslations("shell");
 	const router = useRouter();
 	return (
 		<Button
@@ -16,7 +18,7 @@ export function LogoutButton() {
 				router.refresh();
 			}}
 		>
-			Log out
+			{t("logOut")}
 		</Button>
 	);
 }

@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { domains, mailboxes } from "@/db/schema";
 import { requireTeamAdmin } from "../../utils";
@@ -9,11 +10,12 @@ import type { AccountRouteParams } from "../types";
 export async function GET(request: Request, { params }: AccountRouteParams) {
 	const access = await requireTeamAdmin(request);
 	if (access.error) return access.error;
+	const t = await getTranslations("errors");
 	const { id } = await params;
 	const db = getDb(access.env);
 	const account = await selectAccountById(db, id);
 	if (!account || (account.id !== access.user!.id && account.createdByUserId !== access.user!.id)) {
-		return NextResponse.json({ error: "Account not found" }, { status: 404 });
+		return NextResponse.json({ error: t("accountNotFound") }, { status: 404 });
 	}
 	const rows = await db.select({
 		id: mailboxes.id,

@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { authorizeAdminRequest, dispatchUpdateWorkflow, getUpdateStatus } from "./utils";
 import { isNodeRuntime } from "@/lib/runtime";
 
 export async function POST(request: Request) {
 	const authorization = await authorizeAdminRequest(request);
 	if ("error" in authorization) return authorization.error;
+	const t = await getTranslations("errors");
 	if (isNodeRuntime(authorization.env)) {
-		return NextResponse.json({ error: "Self-hosted installs update by pulling the new container image and restarting." }, { status: 400 });
+		return NextResponse.json({ error: t("selfHostedUpdate") }, { status: 400 });
 	}
 
 	try {
@@ -20,7 +22,7 @@ export async function POST(request: Request) {
 
 		return NextResponse.json({ ok: true, ...dispatch }, { status: 202 });
 	} catch (error) {
-		const message = error instanceof Error ? error.message : "Could not trigger the update workflow";
+		const message = error instanceof Error ? error.message : t("updateWorkflowFailed");
 		const status = message.includes("must be configured") ? 503 : 502;
 		return NextResponse.json({ error: message }, { status });
 	}

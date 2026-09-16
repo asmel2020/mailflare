@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { Check, ExternalLink } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -11,14 +12,14 @@ import {
 import { LicenseActivation } from "./license-activation";
 import { LICENSE_PLANS } from "./utils";
 
-export default function LicensesPage() {
+export default async function LicensesPage() {
+  const t = await getTranslations("licensesAdmin");
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-medium text-neutral-900">Licenses</h1>
+        <h1 className="text-3xl font-medium text-neutral-900">{t("title")}</h1>
         <p className="mt-2 text-sm text-neutral-500">
-          Choose a perpetual license. Each purchase includes updates released
-          during the first year.
+          {t("description")}
         </p>
       </div>
       <LicenseActivation />
@@ -48,16 +49,16 @@ export default function LicensesPage() {
                     )}
                   </p>
                 </div>
-                <CardDescription>{plan.description}</CardDescription>
+                <CardDescription>{t(plan.descriptionKey)}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3 pt-6 flex flex-col flex-1 min-h-0">
-                {plan.features.map((feature) => (
+                {plan.featureKeys.map((featureKey) => (
                   <p
-                    key={feature}
+                    key={featureKey}
                     className="flex gap-2 text-sm text-neutral-600"
                   >
                     <Check className="mt-0.5 h-4 w-4 shrink-0 text-green-600" />
-                    {feature}
+                    {t(featureKey)}
                   </p>
                 ))}
                 <span className="flex-1" />
@@ -67,7 +68,7 @@ export default function LicensesPage() {
                     target="_blank"
                     rel="noopener noreferrer"
                   >
-                    Get {plan.name}
+                    {t("getPlan", { plan: plan.name })}
                     <ExternalLink className="h-4 w-4" />
                   </a>
                 </Button>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { CalendarDays, Pencil, Plus, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +18,7 @@ type CalendarEvent = {
 };
 
 export default function CalendarPage() {
+  const t = useTranslations("calendar");
   const [events, setEvents] = useState<CalendarEvent[]>([]);
   const [title, setTitle] = useState("");
   const [startsAt, setStartsAt] = useState("");
@@ -90,7 +92,7 @@ export default function CalendarPage() {
     }
   }
   async function deleteEvent(id: string) {
-    if (!window.confirm("Delete this event?")) return;
+    if (!window.confirm(t("deleteConfirm"))) return;
     setPendingAction(id);
     try {
     const response = await authFetch(`/api/calendar/events/${id}`, {
@@ -116,55 +118,55 @@ export default function CalendarPage() {
         <div>
           <h1 className="flex items-center gap-3 text-2xl font-semibold text-neutral-900">
             <CalendarDays className="h-7 w-7 text-blue-600" />
-            Calendar
+            {t("title")}
           </h1>
           <p className="mt-1 text-sm text-neutral-500">
-            Your upcoming events and meeting invitations.
+            {t("description")}
           </p>
         </div>
         <Button disabled={pendingAction !== null} onClick={() => { setEditing(null); setAdding(true); }}>
           <Plus className="h-4 w-4" />
-          New event
+          {t("newEvent")}
         </Button>
       </div>
       {adding && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-neutral-950/35 p-4">
           <div className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-2xl">
-            <h2 className="text-lg font-semibold">{editing ? "Edit event" : "Create event"}</h2>
+            <h2 className="text-lg font-semibold">{editing ? t("editEvent") : t("createEvent")}</h2>
             <div className="mt-5 grid gap-3">
               <Input
                 value={title}
                 onChange={(event) => setTitle(event.target.value)}
-                placeholder="Event title"
+                placeholder={t("eventTitlePlaceholder")}
               />
               <Input
                 value={guests}
                 onChange={(event) => setGuests(event.target.value)}
-                placeholder="Add guests (comma-separated emails)"
+                placeholder={t("guestsPlaceholder")}
               />
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   type="datetime-local"
                   value={startsAt}
                   onChange={(event) => setStartsAt(event.target.value)}
-                  aria-label="Start date and time"
+                  aria-label={t("startDateTime")}
                 />
                 <Input
                   type="datetime-local"
                   value={endsAt}
                   onChange={(event) => setEndsAt(event.target.value)}
-                  aria-label="End date and time"
+                  aria-label={t("endDateTime")}
                 />
               </div>
               <div className="mt-2 flex justify-end gap-2">
                 <Button variant="ghost" disabled={pendingAction === "save"} onClick={() => { setEditing(null); setAdding(false); }}>
-                  Cancel
+                  {t("cancel")}
                 </Button>
                 <Button
                   onClick={() => void addEvent()}
                   disabled={!title || !startsAt || !endsAt || pendingAction === "save"}
                 >
-                  {pendingAction === "save" ? (editing ? "Saving..." : "Creating...") : (editing ? "Save changes" : "Create event")}
+                  {pendingAction === "save" ? (editing ? t("saving") : t("creating")) : (editing ? t("saveChanges") : t("createEvent"))}
                 </Button>
               </div>
             </div>
@@ -174,7 +176,7 @@ export default function CalendarPage() {
       <div className="overflow-hidden rounded-xl border border-neutral-200">
         {events.length === 0 ? (
           <p className="p-8 text-center text-sm text-neutral-500">
-            No events this month.
+            {t("empty")}
           </p>
         ) : (
           events.map((event) => (
@@ -197,7 +199,7 @@ export default function CalendarPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                aria-label="Edit event"
+                aria-label={t("editEvent")}
                 disabled={pendingAction !== null}
                 onClick={() => void editEvent(event)}
               >
@@ -206,11 +208,11 @@ export default function CalendarPage() {
               <Button
                 variant="ghost"
                 size="sm"
-                aria-label="Delete event"
+                aria-label={t("deleteEvent")}
                 disabled={pendingAction !== null}
                 onClick={() => void deleteEvent(event.id)}
               >
-                <Trash2 className="h-4 w-4" />{pendingAction === event.id && <span className="sr-only">Deleting...</span>}
+                <Trash2 className="h-4 w-4" />{pendingAction === event.id && <span className="sr-only">{t("deleting")}</span>}
               </Button>
             </div>
           ))

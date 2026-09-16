@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { assertAdmin } from "@/lib/auth/admin";
 import { requireUser } from "@/lib/auth/cookies";
 import { getEnv } from "@/lib/cloudflare";
@@ -19,13 +20,14 @@ const UPDATE_SOURCE_REPOSITORY = "hieunc229/mailflare";
 
 export async function authorizeAdminRequest(request: Request) {
   const env = getEnv();
+  const t = await getTranslations("errors");
   let user: Awaited<ReturnType<typeof requireUser>>;
 
   try {
     user = await requireUser(env, request);
   } catch {
     return {
-      error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }),
+      error: NextResponse.json({ error: t("unauthorized") }, { status: 401 }),
     };
   }
 
@@ -33,7 +35,7 @@ export async function authorizeAdminRequest(request: Request) {
     assertAdmin(user);
   } catch {
     return {
-      error: NextResponse.json({ error: "Forbidden" }, { status: 403 }),
+      error: NextResponse.json({ error: t("forbidden") }, { status: 403 }),
     };
   }
 

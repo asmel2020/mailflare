@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { eq, desc, and, or, count, countDistinct, isNull, isNotNull, inArray, lte, gt, max, notInArray, sql, sum } from "drizzle-orm";
 import type { SQL } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
@@ -14,9 +15,10 @@ import { buildSearchConditions } from "@/lib/search/conditions";
 
 export async function GET(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await getCurrentUser(env, request);
 	if (!user) {
-		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+		return NextResponse.json({ error: t("unauthorized") }, { status: 401 });
 	}
 
 	const url = new URL(request.url);
@@ -42,7 +44,7 @@ export async function GET(request: Request) {
 	if (mailboxId) {
 		const access = await getMailboxAccessLevel(db, user, mailboxId);
 		if (!access?.canRead) {
-			return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+			return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 		}
 		conditions.push(eq(messages.mailboxId, mailboxId));
 	} else if (accessibleMailboxIds.length > 0) {

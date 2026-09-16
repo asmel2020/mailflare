@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { and, eq } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getDb } from "@/db";
@@ -19,8 +20,9 @@ export async function GET(request: Request) {
 
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, mailboxId);
+	const t = await getTranslations("errors");
 	if (!access?.canManage) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 
 	const rows = await db
@@ -33,6 +35,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
 	const env = getEnv();
 	const user = await requireUser(env, request);
+	const t = await getTranslations("errors");
 	const parsed = routingRuleSchema.safeParse(await request.json());
 	if (!parsed.success) {
 		return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, parsed.data.mailboxId);
 	if (!access?.canManage) {
-		return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+		return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	}
 	const mailbox = access.mailbox;
 
@@ -50,7 +53,7 @@ export async function POST(request: Request) {
 	const folderId = destination.startsWith("folder:") ? destination.slice("folder:".length) : null;
 
 	if (!systemAction && !folderId) {
-		return NextResponse.json({ error: "Destination is required" }, { status: 400 });
+		return NextResponse.json({ error: t("destinationRequired") }, { status: 400 });
 	}
 
 	if (folderId) {
@@ -60,7 +63,7 @@ export async function POST(request: Request) {
 			.where(and(eq(folders.id, folderId), eq(folders.mailboxId, mailbox.id)))
 			.limit(1);
 		if (!folder) {
-			return NextResponse.json({ error: "Folder not found" }, { status: 404 });
+			return NextResponse.json({ error: t("folderNotFound") }, { status: 404 });
 		}
 	}
 

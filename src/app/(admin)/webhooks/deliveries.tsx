@@ -1,12 +1,14 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslations } from "next-intl";
 import { RotateCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import type { WebhookDelivery } from "./types";
+import type { WebhookDelivery, WebhookEvent } from "./types";
 import {
 	DELIVERY_STATUS_LABELS,
+	WEBHOOK_EVENT_LABEL_KEYS,
 	fetchDeliveries,
 	formatDuration,
 	formatTimestamp,
@@ -24,6 +26,7 @@ const STATUS_STYLES: Record<WebhookDelivery["status"], string> = {
 
 export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 	const qc = useQueryClient();
+	const t = useTranslations("webhooksAdmin");
 	const deliveries = useQuery({
 		queryKey: ["webhook-deliveries", webhookId],
 		queryFn: () => fetchDeliveries(webhookId),
@@ -40,11 +43,11 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 	});
 
 	if (deliveries.isLoading) {
-		return <p className="text-sm text-neutral-500">Loading deliveries…</p>;
+		return <p className="text-sm text-neutral-500">{t("loadingDeliveries")}</p>;
 	}
 
 	if (!deliveries.data?.length) {
-		return <p className="text-sm text-neutral-500">No deliveries recorded yet.</p>;
+		return <p className="text-sm text-neutral-500">{t("noDeliveries")}</p>;
 	}
 
 	return (
@@ -52,27 +55,29 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 			<table className="w-full min-w-[820px] text-left text-sm">
 				<thead className="bg-neutral-50 text-xs uppercase tracking-wide text-neutral-500">
 					<tr>
-						<th className="px-3 py-2 font-medium">Event</th>
-						<th className="px-3 py-2 font-medium">Status</th>
-						<th className="px-3 py-2 font-medium">Attempts</th>
-						<th className="px-3 py-2 font-medium">Response</th>
-						<th className="px-3 py-2 font-medium">Last attempt</th>
-						<th className="px-3 py-2 font-medium">Next retry</th>
+						<th className="px-3 py-2 font-medium">{t("tableEvent")}</th>
+						<th className="px-3 py-2 font-medium">{t("tableStatus")}</th>
+						<th className="px-3 py-2 font-medium">{t("tableAttempts")}</th>
+						<th className="px-3 py-2 font-medium">{t("tableResponse")}</th>
+						<th className="px-3 py-2 font-medium">{t("tableLastAttempt")}</th>
+						<th className="px-3 py-2 font-medium">{t("tableNextRetry")}</th>
 						<th className="px-3 py-2 font-medium" />
 					</tr>
 				</thead>
 				<tbody>
-					{deliveries.data.map((delivery) => (
+					{deliveries.data.map((delivery) => {
+						const eventKey = WEBHOOK_EVENT_LABEL_KEYS[delivery.eventType as WebhookEvent];
+						return (
 						<tr key={delivery.id} className="border-t border-neutral-100 align-top">
 							<td className="px-3 py-2">
-								<span className="block">{delivery.eventType}</span>
+								<span className="block">{eventKey ? t(eventKey) : delivery.eventType}</span>
 								<span className="block text-xs text-neutral-400">
 									{formatTimestamp(delivery.createdAt)}
 								</span>
 							</td>
 							<td className="px-3 py-2">
 								<Badge className={STATUS_STYLES[delivery.status]}>
-									{DELIVERY_STATUS_LABELS[delivery.status] ?? delivery.status}
+									{t(DELIVERY_STATUS_LABELS[delivery.status])}
 								</Badge>
 							</td>
 							<td className="px-3 py-2 whitespace-nowrap">
@@ -109,12 +114,13 @@ export function WebhookDeliveries({ webhookId }: { webhookId: string }) {
 										disabled={retry.isPending}
 										onClick={() => retry.mutate(delivery.id)}
 									>
-										<RotateCw className="h-3 w-3" /> Retry
+										<RotateCw className="h-3 w-3" /> {t("retry")}
 									</Button>
 								)}
 							</td>
 						</tr>
-					))}
+						);
+					})}
 				</tbody>
 			</table>
 		</div>

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { count, desc, eq, max } from "drizzle-orm";
 import { getEnv } from "@/lib/cloudflare";
 import { getDb } from "@/db";
@@ -53,12 +54,13 @@ export async function POST(request: Request) {
 	const auth = await requireSessionUser(env, request);
 	if (auth.error) return auth.error;
 	const user = auth.user;
+	const t = await getTranslations("errors");
 	let body: unknown;
 	try {
 		body = await readJsonBody(request, 16 * 1024);
 	} catch (error) {
 		const status = error instanceof RequestBodyTooLargeError ? 413 : 400;
-		return NextResponse.json({ error: "Invalid webhook request" }, { status });
+		return NextResponse.json({ error: t("invalidWebhookRequest") }, { status });
 	}
 	const parsed = webhookSchema.safeParse(body);
 	if (!parsed.success) {

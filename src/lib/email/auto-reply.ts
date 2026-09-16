@@ -1,10 +1,12 @@
 import { and, eq, gte } from "drizzle-orm";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
-import { autoReplyDeliveries, mailboxes } from "@/db/schema";
+import { autoReplyDeliveries, mailboxes, users } from "@/db/schema";
 import { formatEmailAddress, normalizeEmailAddress } from "@/lib/email/address";
 import { resolveInboundAddress } from "@/lib/email/routing";
 import { sendEmail } from "@/lib/email/send";
 import { newId } from "@/lib/ids";
+import { defaultLocale, normalizeLocale } from "@/i18n/config";
 import type { MailboxAutoReplyInput } from "./auto-reply-types";
 
 const autoReplyIntervalMs = 24 * 60 * 60 * 1000;
@@ -52,12 +54,23 @@ export async function sendMailboxAutoReply(
 		headers.References = input.incomingMessageId;
 	}
 
+	// The owner authors the body; the fallback subject follows their language.
+	const [owner] = await db
+		.select({ locale: users.locale })
+		.from(users)
+		.where(eq(users.id, input.userId))
+		.limit(1);
+	const t = await getTranslations({
+		locale: normalizeLocale(owner?.locale) ?? defaultLocale,
+		namespace: "emails",
+	});
+
 	await sendEmail(env, {
 		userId: input.userId,
 		mailboxId: input.mailboxId,
 		from: formatEmailAddress(deliveredAddress, mailbox.displayName),
 		to: recipient,
-		subject: mailbox.autoReplySubject.trim() || "Out of office",
+		subject: mailbox.autoReplySubject.trim() || t("autoReplyDefaultSubject"),
 		text: mailbox.autoReplyBody.trim(),
 		headers,
 	});

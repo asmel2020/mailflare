@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { NextResponse } from "next/server";
+import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
 import { contacts } from "@/db/schema";
 import { requireUser } from "@/lib/auth/cookies";
@@ -48,12 +49,13 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	let form: FormData;
 	try {
 		form = await request.formData();
 	} catch {
-		return NextResponse.json({ error: "Expected multipart form data" }, { status: 400 });
+		return NextResponse.json({ error: t("expectedMultipartFormData") }, { status: 400 });
 	}
 	const mailboxEntry = form.get("mailboxId");
 	const addressEntry = form.get("address");
@@ -61,22 +63,22 @@ export async function POST(request: Request) {
 	const email = normalizeEmailAddress(typeof addressEntry === "string" ? addressEntry : "");
 	const file = form.get("file");
 	if (!mailboxId || !email || !isUploadedAvatarFile(file)) {
-		return NextResponse.json({ error: "Mailbox, contact, and image file are required" }, { status: 400 });
+		return NextResponse.json({ error: t("mailboxContactAndImageRequired") }, { status: 400 });
 	}
 	if (!ALLOWED_AVATAR_TYPES.includes(file.type)) {
-		return NextResponse.json({ error: "Use a JPEG, PNG, WebP, or GIF image" }, { status: 400 });
+		return NextResponse.json({ error: t("invalidImageType") }, { status: 400 });
 	}
 	if (file.size > MAX_AVATAR_SIZE) {
-		return NextResponse.json({ error: "Image must be 2 MB or smaller" }, { status: 413 });
+		return NextResponse.json({ error: t("imageTooLarge") }, { status: 413 });
 	}
 
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, mailboxId);
-	if (!access?.canManage) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+	if (!access?.canManage) return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	const account = await getPersonalIdentityForAddress(db, access.mailbox.userId, email);
 	if (account) {
 		if (account.userId !== user.id) {
-			return NextResponse.json({ error: "Only the account owner can change this contact" }, { status: 403 });
+			return NextResponse.json({ error: t("onlyAccountOwnerCanChangeContact") }, { status: 403 });
 		}
 		const key = avatarKeyFor(account.userId);
 		await env.BUCKET.put(key, await file.arrayBuffer(), {
@@ -112,19 +114,20 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
 	const env = getEnv();
+	const t = await getTranslations("errors");
 	const user = await requireUser(env, request);
 	const url = new URL(request.url);
 	const mailboxId = url.searchParams.get("mailboxId");
 	const email = normalizeEmailAddress(url.searchParams.get("address") ?? "");
-	if (!mailboxId || !email) return NextResponse.json({ error: "Mailbox and contact are required" }, { status: 400 });
+	if (!mailboxId || !email) return NextResponse.json({ error: t("mailboxAndContactRequired") }, { status: 400 });
 
 	const db = getDb(env);
 	const access = await getMailboxAccessLevel(db, user, mailboxId);
-	if (!access?.canManage) return NextResponse.json({ error: "Mailbox not found" }, { status: 404 });
+	if (!access?.canManage) return NextResponse.json({ error: t("mailboxNotFound") }, { status: 404 });
 	const account = await getPersonalIdentityForAddress(db, access.mailbox.userId, email);
 	if (account) {
 		if (account.userId !== user.id) {
-			return NextResponse.json({ error: "Only the account owner can change this contact" }, { status: 403 });
+			return NextResponse.json({ error: t("onlyAccountOwnerCanChangeContact") }, { status: 403 });
 		}
 		if (account.avatarKey) await env.BUCKET.delete(account.avatarKey);
 		await syncPersonalIdentity(db, { ...account, avatarKey: null });

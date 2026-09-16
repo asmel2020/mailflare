@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
+import { LocaleSwitcher } from "@/components/locale-switcher";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ChangePasswordForm } from "./change-password-form";
 import { EmailClientsSettings } from "./email-clients-settings";
@@ -12,6 +14,8 @@ import type { AccountSettingsResponse } from "./types";
 import { loadAccountSettings } from "./utils";
 
 export function AccountSettings() {
+	const t = useTranslations("settings");
+	const tPages = useTranslations("settingsPages");
 	const [user, setUser] = useState<AccountSettingsResponse["user"]>();
 	const [error, setError] = useState<string | null>(null);
 
@@ -53,8 +57,8 @@ export function AccountSettings() {
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Account details</h2>
-					<p className="mt-1 text-sm text-neutral-500">Manage your identity, recovery options, and email preferences.</p>
+					<h2 className="text-xl font-semibold text-neutral-900">{tPages("accountDetailsTitle")}</h2>
+					<p className="mt-1 text-sm text-neutral-500">{tPages("accountDetailsDescription")}</p>
 				</div>
 				<div className="space-y-1 overflow-hidden rounded-3xl">
 					<ProfileForm
@@ -66,8 +70,8 @@ export function AccountSettings() {
 					{user.canForwardEmail && (
 						<div className="space-y-4 rounded-lg bg-white p-6">
 							<div>
-								<h3 className="text-lg font-semibold text-neutral-900">Forwarding email</h3>
-								<p className="mt-1 text-sm text-neutral-500">Send a copy of incoming messages to another email address.</p>
+								<h3 className="text-lg font-semibold text-neutral-900">{tPages("forwardingTitle")}</h3>
+								<p className="mt-1 text-sm text-neutral-500">{tPages("forwardingDescription")}</p>
 							</div>
 						<ForwardingEmailForm initialForwardingEmail={user.forwardingEmail ?? ""} />
 						</div>
@@ -75,8 +79,8 @@ export function AccountSettings() {
 
 					<div className="space-y-4 rounded-b-3xl rounded-t-lg bg-white p-6">
 						<div>
-							<h3 className="text-lg font-semibold text-neutral-900">Email signature</h3>
-							<p className="mt-1 text-sm text-neutral-500">Configure the signature for the inbox currently selected above.</p>
+							<h3 className="text-lg font-semibold text-neutral-900">{tPages("emailSignatureTitle")}</h3>
+							<p className="mt-1 text-sm text-neutral-500">{tPages("emailSignatureDescription")}</p>
 						</div>
 					<MailboxSignatureForm />
 					</div>
@@ -85,20 +89,30 @@ export function AccountSettings() {
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Security</h2>
-					<p className="mt-1 text-sm text-neutral-500">Manage how you sign in to your account.</p>
+					<h2 className="text-xl font-semibold text-neutral-900">{t("languageTitle")}</h2>
+					<p className="mt-1 text-sm text-neutral-500">{t("languageHint")}</p>
+				</div>
+				<div className="rounded-3xl bg-white p-6">
+					<LocaleSwitcher />
+				</div>
+			</section>
+
+			<section className="space-y-4">
+				<div>
+					<h2 className="text-xl font-semibold text-neutral-900">{tPages("securityTitle")}</h2>
+					<p className="mt-1 text-sm text-neutral-500">{tPages("securityDescription")}</p>
 				</div>
 				<div className="space-y-4 rounded-3xl bg-white p-6">
 					<div>
-						<h3 className="text-lg font-semibold text-neutral-900">Change password</h3>
-						<p className="mt-1 text-sm text-neutral-500">Use at least 8 characters for your new password.</p>
+						<h3 className="text-lg font-semibold text-neutral-900">{tPages("changePasswordTitle")}</h3>
+						<p className="mt-1 text-sm text-neutral-500">{tPages("changePasswordDescription")}</p>
 					</div>
 					<ChangePasswordForm />
 				</div>
 				<div className="space-y-4 rounded-3xl bg-white p-6">
 					<div>
-						<h3 className="text-lg font-semibold text-neutral-900">Two-factor authentication</h3>
-						<p className="mt-1 text-sm text-neutral-500">Require a code from an authenticator app when signing in.</p>
+						<h3 className="text-lg font-semibold text-neutral-900">{tPages("twoFactorTitle")}</h3>
+						<p className="mt-1 text-sm text-neutral-500">{tPages("twoFactorDescription")}</p>
 					</div>
 					<MfaSettings />
 				</div>
@@ -106,8 +120,8 @@ export function AccountSettings() {
 
 			<section className="space-y-4">
 				<div>
-					<h2 className="text-xl font-semibold text-neutral-900">Email apps</h2>
-					<p className="mt-1 text-sm text-neutral-500">Use your mail from a desktop or mobile app over JMAP.</p>
+					<h2 className="text-xl font-semibold text-neutral-900">{tPages("emailAppsTitle")}</h2>
+					<p className="mt-1 text-sm text-neutral-500">{tPages("emailAppsDescription")}</p>
 				</div>
 				<div className="space-y-4 rounded-3xl bg-white p-6">
 					<EmailClientsSettings />

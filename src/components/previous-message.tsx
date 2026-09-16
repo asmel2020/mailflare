@@ -1,13 +1,16 @@
 import { ChevronRight } from "lucide-react";
+import { useTranslations } from "next-intl";
 import type { PreviousMessageProps } from "./previous-message-types";
 
 export function PreviousMessage({ message }: PreviousMessageProps) {
+	const t = useTranslations("message");
+	const direction = message.direction === "sent" ? t("directionSent") : t("directionReceived");
 	return (
 		<details className="group mt-4 border-l-2 border-neutral-200 pl-4">
 			<summary className="flex cursor-pointer list-none items-center gap-2 rounded-md py-2 text-xs font-medium text-neutral-500 hover:text-neutral-800">
 				<ChevronRight className="h-3.5 w-3.5 shrink-0 transition-transform group-open:rotate-90" />
 				<span>
-					Previous message {message.direction} at {message.dateLine}
+					{t("previousMessage", { direction, dateLine: message.dateLine })}
 				</span>
 			</summary>
 			<div className="pb-2 pl-5 text-neutral-600">
