@@ -2,9 +2,12 @@ import { NextResponse } from "next/server";
 import { eq } from "drizzle-orm";
 import { getTranslations } from "next-intl/server";
 import { getDb } from "@/db";
-import { mailboxes, users } from "@/db/schema";
+import { apiKeys, mailboxes, users } from "@/db/schema";
+import { generateApiKey, scopesToJson } from "@/lib/api-keys";
+import { allowedRecipientsToJson } from "@/lib/api/allowlist";
 import { hashPassword } from "@/lib/auth/password";
 import { newId } from "@/lib/ids";
+import { createAuditLog } from "@/lib/mailboxes/audit";
 import { createUserAccountSchema } from "@/lib/validators";
 import { ensureEmailRoutingRuleToWorker } from "@/lib/cloudflare-api";
 import { ensureMailboxDomainRouting } from "@/lib/mailboxes/domain-addresses";
@@ -55,7 +58,7 @@ export async function POST(request: Request) {
 			.values({
 				id: userId,
 				email,
-				passwordHash: hashPassword(input.password),
+				passwordHash: hashPassword(input.password ?? crypto.randomUUID()),
 				name: username,
 				role: input.role,
 				createdByUserId: access.user!.id,
@@ -79,7 +82,29 @@ export async function POST(request: Request) {
 		});
 		await ensureMailboxDomainRouting(access.env, db, { id: mailboxId, domainId: domain.id, localPart: username, useAllDomains: true });
 
-		return NextResponse.json({ account: accountListItemFromUser(account) }, { status: 201 });
+		// Mint an API key for the new account. Its secret is returned exactly once.
+		let apiKey: string | null = null;
+		if (input.generateApiKey) {
+			const generated = generateApiKey();
+			await db.insert(apiKeys).values({
+				id: newId("key"),
+				userId,
+				name: `Agent key (${username})`,
+				prefix: generated.prefix,
+				keyHash: generated.hash,
+				scopes: scopesToJson(["read", "send"]),
+				allowedRecipients: allowedRecipientsToJson(input.allowedRecipients),
+			});
+			apiKey = generated.fullKey;
+			await createAuditLog(access.env, {
+				actorUserId: access.user!.id,
+				targetUserId: userId,
+				action: "account.api_key_created",
+				metadata: { allowedRecipients: input.allowedRecipients ?? [] },
+			});
+		}
+
+		return NextResponse.json({ account: accountListItemFromUser(account), apiKey }, { status: 201 });
 	} catch (error) {
 		await db.delete(users).where(eq(users.id, userId));
 		const message = error instanceof Error ? error.message : t("accountMailboxCreateFailed");

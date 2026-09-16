@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getEnv } from "@/lib/cloudflare";
 import { authenticateApiKey, requireScope } from "@/lib/api/auth";
+import { collectRecipientAddresses, findDisallowedRecipients } from "@/lib/api/allowlist";
 import { sendEmailSchema } from "@/lib/validators";
 import { sendEmail } from "@/lib/email/send";
 import { decodeBase64Content } from "@/lib/email/attachments";
@@ -25,6 +26,17 @@ export async function POST(request: Request) {
 	const parsed = sendEmailSchema.safeParse(body);
 	if (!parsed.success) {
 		return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+	}
+
+	const disallowed = findDisallowedRecipients(
+		auth.allowedRecipients,
+		collectRecipientAddresses(parsed.data.to, parsed.data.cc, parsed.data.bcc),
+	);
+	if (disallowed.length > 0) {
+		return NextResponse.json(
+			{ error: `This API key is not allowed to send to: ${disallowed.join(", ")}` },
+			{ status: 403 },
+		);
 	}
 
 	try {

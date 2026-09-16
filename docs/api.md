@@ -69,6 +69,26 @@ The account id is the user id. Each Mailflare mailbox appears as a top-level JMA
 
 When two-factor authentication is on, `POST /api/auth/login` returns `{ ok: true, mfaRequired: true, challengeToken }` instead of a session. `POST /api/auth/mfa/verify` with `{ challengeToken, code }` completes the sign-in; `code` is a 6-digit TOTP or one of the recovery codes. Challenges expire after 5 minutes. Enrolment, recovery codes and turning it off are under `/api/settings/mfa/*` (session auth) and always re-check the password.
 
+## API keys
+
+`POST /api/api-keys` mints a key (`ep_…`) for the signed-in user with the `send`, `read` and/or `jmap` scopes. The response carries the secret exactly once; only a hash is stored. `GET /api/api-keys` lists the caller's keys, `PATCH /api/api-keys/{id}` updates a key's name and recipient allow-list, and `DELETE /api/api-keys/{id}` revokes it. A key can be managed by its owner or by the administrator who created the owner's account.
+
+An administrator can create an account and mint its first key in one call: `POST /api/accounts` accepts `generateApiKey` (default `true`) together with `allowedRecipients`. When `password` is omitted the server generates one that is never returned, so the account is key-only. The new key's secret is returned once as `apiKey`.
+
+Keys only authenticate the API routes (this document and JMAP). The session-only routes — including `POST /api/api-keys` — reject a key with `401`, so a key holder cannot mint or revoke keys.
+
+### Recipient allow-list
+
+A key may be restricted to a set of recipients (`allowedRecipients`, stored as JSON). Patterns match case-insensitively:
+
+| Pattern | Matches |
+| --- | --- |
+| `maya@example.com` | that exact address |
+| `@example.com` or `example.com` | any address on that domain |
+| `*` | anyone |
+
+An empty list means the key may send to anyone. The check covers `to`, `cc` and `bcc` and applies to every key-authenticated send, including `POST /api/v1/send`, so it cannot be bypassed. A rejected recipient returns `403` listing the addresses that are not allowed. Sends made from the dashboard (session auth) are not affected.
+
 ## Searching
 
 `GET /api/messages?q=...` (session) and `GET /api/v1/messages?q=...` (API key, `read` scope) accept the same query grammar, backed by an FTS5 index over subject, sender, recipients and body:

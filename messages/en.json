@@ -1020,7 +1020,19 @@
 		"navHeading": "Account settings",
 		"navDetails": "Details",
 		"navPermissions": "Permissions",
-		"navMailboxes": "Mailboxes"
+		"navMailboxes": "Mailboxes",
+		"passwordOptionalHint": "Leave blank to generate a random password that is never shown.",
+		"generateApiKey": "Create an API key for this account",
+		"generateApiKeyHint": "Shown once; an agent or app can use it instead of the password.",
+		"allowedRecipients": "Allowed recipients",
+		"allowedRecipientsHint": "One per line: an exact address, @domain, or * for anyone. Empty allows anyone.",
+		"allowedRecipientsPlaceholder": "@example.com",
+		"apiKeyCreatedTitle": "API key created",
+		"apiKeyCreatedHint": "Copy it now. It is stored hashed and cannot be shown again.",
+		"copy": "Copy",
+		"copied": "Copied",
+		"done": "Done",
+		"keyAria": "API key"
 	},
 	"apiKeysAdmin": {
 		"title": "API Keys",
@@ -1034,7 +1046,19 @@
 		"copyKey": "Copy your key now:",
 		"total": "{count} total",
 		"noKeys": "No API keys yet",
-		"failed": "Failed"
+		"failed": "Failed",
+		"allowlistLabel": "Allowed recipients",
+		"allowlistAnyone": "Anyone",
+		"allowlistHint": "One per line: an exact address, @domain, or * for anyone.",
+		"edit": "Edit",
+		"save": "Save",
+		"cancel": "Cancel",
+		"revoke": "Revoke",
+		"revokeConfirm": "Revoke this API key? Apps using it stop working immediately.",
+		"updated": "Key updated",
+		"revoked": "Key revoked",
+		"unableToUpdate": "Could not update the key",
+		"unableToRevoke": "Could not revoke the key"
 	},
 	"backupsAdmin": {
 		"title": "Database Backups",
