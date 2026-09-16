@@ -1288,5 +1288,12 @@
 		"domainCheckFailed": "Domain check failed",
 		"databasePreparationFailed": "Database preparation failed",
 		"teamLicenseRequiredForMailboxes": "A Team license is required to create shared inboxes"
+	},
+	"emails": {
+		"resetSubject": "Reset your {appName} password",
+		"resetRequested": "Someone asked to reset the password for {email} on {appName}.",
+		"resetOpenLink": "Open this link within {minutes} minutes to choose a new password:",
+		"resetIgnore": "If that was not you, you can ignore this message; the password stays as it is.",
+		"autoReplyDefaultSubject": "Out of office"
 	}
 }

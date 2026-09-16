@@ -1288,5 +1288,12 @@
 		"domainCheckFailed": "No se pudo comprobar el dominio",
 		"databasePreparationFailed": "No se pudo preparar la base de datos",
 		"teamLicenseRequiredForMailboxes": "Se requiere una licencia Team para crear bandejas compartidas"
+	},
+	"emails": {
+		"resetSubject": "Restablece tu contraseña de {appName}",
+		"resetRequested": "Alguien solicitó restablecer la contraseña de {email} en {appName}.",
+		"resetOpenLink": "Abre este enlace en los próximos {minutes} minutos para elegir una contraseña nueva:",
+		"resetIgnore": "Si no fuiste tú, puedes ignorar este mensaje; la contraseña no cambiará.",
+		"autoReplyDefaultSubject": "Fuera de la oficina"
 	}
 }
