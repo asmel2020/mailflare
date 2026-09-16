@@ -96,7 +96,7 @@ Consequences worth remembering:
 
 ## MCP
 
-`POST /mcp` is a **stateless** MCP server over Streamable HTTP (`WebStandardStreamableHTTPServerTransport` with `sessionIdGenerator: undefined`, `enableJsonResponse: true`), authenticated with an API key (`read` scope; send tools also need `send`). The Cloudflare-safe `CfWorkerJsonSchemaValidator` is used because Ajv needs `eval`.
+`POST /mcp` is a **stateless** MCP server over Streamable HTTP (`WebStandardStreamableHTTPServerTransport` with `sessionIdGenerator: undefined`, `enableJsonResponse: true`), authenticated with an API key (`read` scope; send tools also need `send`). The Cloudflare-safe `CfWorkerJsonSchemaValidator` is used because Ajv needs `eval`. Usage and client configuration are documented in `docs/mcp.md`.
 
 The tools in `src/lib/mcp/server.ts` do **not** re-implement anything: they call the `/api/v1` route handlers directly with the caller's `Authorization` header, so scopes, the allow-list and the rate limit all apply. Keep it that way — add a `/api/v1` endpoint rather than reaching into the database from a tool. Clients must send `Accept: application/json, text/event-stream`.
 

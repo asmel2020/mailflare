@@ -91,22 +91,14 @@ An empty list means the key may send to anyone. The check covers `to`, `cc` and 
 
 ## Model Context Protocol (MCP)
 
-`POST /mcp` is a **stateless** MCP server over Streamable HTTP, so an agent can read and send mail with an API key instead of a browser session:
+`POST /mcp` is a stateless MCP server over Streamable HTTP, so an agent can read and send mail with an API key instead of a browser session. It needs a key with the `read` scope; tools that send mail also need `send` and are subject to the key's recipient allow-list and the send rate limit.
 
 ```
 Authorization: Bearer ep_…
 Accept: application/json, text/event-stream
 ```
 
-It needs a key with the `read` scope. Tools that send mail also need `send` and are subject to the same recipient allow-list and send rate limit as the REST API, because the tools call the `/api/v1` handlers internally rather than re-implementing them.
-
-Tools: `whoami`, `list_mailboxes`, `list_folders`, `search_messages`, `get_message`, `get_thread`, `list_attachments`, `download_attachment`, `send_message`, `reply_message`, `forward_message`, `mark_read`, `mark_unread`, `star_message`, `unstar_message`, `archive_message`, `trash_message`, `move_to_inbox`, `mark_spam`, `mark_ham`, `snooze_message`, `unsnooze_message`, `move_message`.
-
-`reply_message` and `forward_message` derive the recipient, subject, `In-Reply-To` and `References` from the original message so replies thread correctly. `download_attachment` returns base64 content and is limited to 5 MB. Register it with a client using the URL and the agent's key:
-
-```json
-{ "mcpServers": { "mailflare": { "url": "https://mail.example.com/mcp", "headers": { "Authorization": "Bearer ep_…" } } } }
-```
+See [Connecting an agent over MCP](mcp.md) for the full walkthrough: creating the agent account and key, client configuration, the tool list and the raw JSON-RPC examples. The tools do not re-implement anything — they call the `/api/v1` handlers below, so every restriction applies.
 
 ## Message API (API key)
 
