@@ -15,6 +15,8 @@ interface CloudflareEnv {
 		import("./src/lib/realtime/hub").RealtimeHub
 	>;
 	LOGIN_RATE_LIMIT?: RateLimit;
+	/** Caps API-key sends (agents) per key. */
+	AGENT_SEND_RATE_LIMIT?: RateLimit;
 	CF_TOKEN?: string;
 	CF_API_KEY?: string;
 	CF_EMAIL?: string;

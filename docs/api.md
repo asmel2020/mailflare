@@ -89,6 +89,38 @@ A key may be restricted to a set of recipients (`allowedRecipients`, stored as J
 
 An empty list means the key may send to anyone. The check covers `to`, `cc` and `bcc` and applies to every key-authenticated send, including `POST /api/v1/send`, so it cannot be bypassed. A rejected recipient returns `403` listing the addresses that are not allowed. Sends made from the dashboard (session auth) are not affected.
 
+## Model Context Protocol (MCP)
+
+`POST /mcp` is a **stateless** MCP server over Streamable HTTP, so an agent can read and send mail with an API key instead of a browser session:
+
+```
+Authorization: Bearer ep_…
+Accept: application/json, text/event-stream
+```
+
+It needs a key with the `read` scope. Tools that send mail also need `send` and are subject to the same recipient allow-list and send rate limit as the REST API, because the tools call the `/api/v1` handlers internally rather than re-implementing them.
+
+Tools: `whoami`, `list_mailboxes`, `list_folders`, `search_messages`, `get_message`, `get_thread`, `list_attachments`, `download_attachment`, `send_message`, `reply_message`, `forward_message`, `mark_read`, `mark_unread`, `star_message`, `unstar_message`, `archive_message`, `trash_message`, `move_to_inbox`, `mark_spam`, `mark_ham`, `snooze_message`, `unsnooze_message`, `move_message`.
+
+`reply_message` and `forward_message` derive the recipient, subject, `In-Reply-To` and `References` from the original message so replies thread correctly. `download_attachment` returns base64 content and is limited to 5 MB. Register it with a client using the URL and the agent's key:
+
+```json
+{ "mcpServers": { "mailflare": { "url": "https://mail.example.com/mcp", "headers": { "Authorization": "Bearer ep_…" } } } }
+```
+
+## Message API (API key)
+
+| Route | Purpose |
+| --- | --- |
+| `GET /api/v1/mailboxes` | Mailboxes the account can read or send from, with their addresses |
+| `GET /api/v1/folders?mailboxId=` | User folders of a mailbox |
+| `GET /api/v1/messages` | List/search; supports `mailboxId`, `folderId`, `direction`, `status`, `read`, `starred`, `q`, `limit`, `offset` |
+| `GET /api/v1/messages/{id}` | One message with body, contacts, attachments and unsubscribe URL |
+| `PATCH /api/v1/messages/{id}` | Update `read`, `starred`, `status` (`received`, `archived`, `trash`, `spam`), `folderId` or `snoozedUntil` |
+| `GET /api/v1/messages/{id}/thread` | The whole conversation, oldest first |
+| `GET /api/v1/messages/{id}/attachments/{attachmentId}` | Stream one attachment |
+| `POST /api/v1/send` | Send (with `inReplyTo`/`references` for replies and base64 attachments) |
+
 ## Searching
 
 `GET /api/messages?q=...` (session) and `GET /api/v1/messages?q=...` (API key, `read` scope) accept the same query grammar, backed by an FTS5 index over subject, sender, recipients and body:
