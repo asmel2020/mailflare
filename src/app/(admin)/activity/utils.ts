@@ -15,9 +15,9 @@ export function formatActivityDate(value: string): string {
 	}).format(new Date(value));
 }
 
-export function getActivityLabel(action: string): string {
-	if (action === "auth.login") return "Login";
-	if (action === "auth.logout") return "Logout";
+export function getActivityLabel(action: string, labels: { login: string; logout: string }): string {
+	if (action === "auth.login") return labels.login;
+	if (action === "auth.logout") return labels.logout;
 	return action;
 }
 

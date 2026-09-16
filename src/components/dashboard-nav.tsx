@@ -15,6 +15,7 @@ import {
   Star,
   Trash2,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,20 +49,20 @@ import { SidebarHeader } from "./sidebar-header";
 import { useSidebar } from "./sidebar-state";
 
 const links = [
-  { href: "/compose", label: "Compose", icon: MailPlus, primary: true },
-  { href: "/inbox", label: "Inbox", icon: Inbox, preloadMessages: true },
-  { href: "/starred", label: "Starred", icon: Star, preloadMessages: true },
-  { href: "/snoozed", label: "Snoozed", icon: Clock, preloadMessages: true },
-  { href: "/sent", label: "Sent", icon: Send, preloadMessages: true },
-  { href: "/drafts", label: "Drafts", icon: FileText, preloadMessages: true },
+  { href: "/compose", labelKey: "compose", icon: MailPlus, primary: true },
+  { href: "/inbox", labelKey: "inbox", icon: Inbox, preloadMessages: true },
+  { href: "/starred", labelKey: "starred", icon: Star, preloadMessages: true },
+  { href: "/snoozed", labelKey: "snoozed", icon: Clock, preloadMessages: true },
+  { href: "/sent", labelKey: "sent", icon: Send, preloadMessages: true },
+  { href: "/drafts", labelKey: "drafts", icon: FileText, preloadMessages: true },
   {
     href: "/archived",
-    label: "Archived",
+    labelKey: "archived",
     icon: Archive,
     preloadMessages: true,
   },
-  { href: "/spam", label: "Spam", icon: ShieldAlert, preloadMessages: true },
-  { href: "/trash", label: "Trash", icon: Trash2, preloadMessages: true },
+  { href: "/spam", labelKey: "spam", icon: ShieldAlert, preloadMessages: true },
+  { href: "/trash", labelKey: "trash", icon: Trash2, preloadMessages: true },
 ];
 
 export function DashboardNav({ className }: { className?: string }) {
@@ -74,47 +75,53 @@ export function DashboardNav({ className }: { className?: string }) {
     useState<FolderColor>(DEFAULT_FOLDER_COLOR);
   const [addingFolder, setAddingFolder] = useState(false);
   const [folderDialogOpen, setFolderDialogOpen] = useState(false);
+  const t = useTranslations("nav");
   const linksWithCounts: NavLink[] = links.map((link): NavLink => {
-    if (link.href === "/inbox") {
-      return { ...link, count: getFolderNavCount("inbox", counts.folders) };
+    const { labelKey, ...rest } = link;
+    const label = t(labelKey);
+    if (rest.href === "/inbox") {
+      return { ...rest, label, count: getFolderNavCount("inbox", counts.folders) };
     }
-    if (link.href === "/starred") {
-      return { ...link, count: getFolderNavCount("starred", counts.folders) };
+    if (rest.href === "/starred") {
+      return { ...rest, label, count: getFolderNavCount("starred", counts.folders) };
     }
-    if (link.href === "/snoozed") {
-      return { ...link, count: getFolderNavCount("snoozed", counts.folders) };
+    if (rest.href === "/snoozed") {
+      return { ...rest, label, count: getFolderNavCount("snoozed", counts.folders) };
     }
-    if (link.href === "/sent") {
-      return { ...link, count: getFolderNavCount("sent", counts.folders) };
+    if (rest.href === "/sent") {
+      return { ...rest, label, count: getFolderNavCount("sent", counts.folders) };
     }
-    if (link.href === "/drafts") {
-      return { ...link, count: getFolderNavCount("drafts", counts.folders) };
+    if (rest.href === "/drafts") {
+      return { ...rest, label, count: getFolderNavCount("drafts", counts.folders) };
     }
-    if (link.href === "/archived") {
+    if (rest.href === "/archived") {
       return {
-        ...link,
+        ...rest,
+        label,
         count: getFolderNavCount("archived", counts.folders),
         onMessageDrop: (messageIds: string[]) =>
           void moveMessagesToSystemFolder(messageIds, "archive"),
       };
     }
-    if (link.href === "/spam") {
+    if (rest.href === "/spam") {
       return {
-        ...link,
+        ...rest,
+        label,
         count: getFolderNavCount("spam", counts.folders),
         onMessageDrop: (messageIds: string[]) =>
           void moveMessagesToSystemFolder(messageIds, "spam"),
       };
     }
-    if (link.href === "/trash") {
+    if (rest.href === "/trash") {
       return {
-        ...link,
+        ...rest,
+        label,
         count: getFolderNavCount("trash", counts.folders),
         onMessageDrop: (messageIds: string[]) =>
           void moveMessagesToSystemFolder(messageIds, "trash"),
       };
     }
-    return link;
+    return { ...rest, label };
   });
 
   useEffect(() => {
@@ -178,7 +185,7 @@ export function DashboardNav({ className }: { className?: string }) {
       {!minimal && (
         <div className="mt-2 flex h-8 items-center justify-between px-3">
           <span className="text-xs font-medium uppercase tracking-wide text-neutral-400">
-            Folders
+            {t("folders")}
           </span>
           {selectedMailbox && (
             <Dialog open={folderDialogOpen} onOpenChange={setFolderDialogOpen}>
@@ -186,35 +193,35 @@ export function DashboardNav({ className }: { className?: string }) {
                 <button
                   type="button"
                   className="flex h-7 w-7 items-center justify-center rounded-lg text-neutral-500 hover:bg-blue-50 hover:text-blue-700"
-                  aria-label="Create folder"
+                  aria-label={t("createFolder")}
                 >
                   <Plus className="h-4 w-4" />
                 </button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
-                  <DialogTitle>Create folder</DialogTitle>
+                  <DialogTitle>{t("createFolder")}</DialogTitle>
                   <DialogDescription>
-                    Add a folder to the selected mailbox.
+                    {t("createFolderHint")}
                   </DialogDescription>
                 </DialogHeader>
                 <form onSubmit={createFolder} className="space-y-4">
                   <div className="space-y-2">
-                    <Label htmlFor="folderName">Folder name</Label>
+                    <Label htmlFor="folderName">{t("folderName")}</Label>
                     <Input
                       id="folderName"
                       value={newFolderName}
                       onChange={(event) => setNewFolderName(event.target.value)}
-                      placeholder="Receipts"
+                      placeholder={t("folderNamePlaceholder")}
                       autoFocus
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Color</Label>
+                    <Label>{t("color")}</Label>
                     <div
                       className="flex flex-wrap gap-2"
                       role="radiogroup"
-                      aria-label="Folder color"
+                      aria-label={t("folderColor")}
                     >
                       {FOLDER_COLOR_OPTIONS.map((option) => (
                         <button
@@ -239,7 +246,7 @@ export function DashboardNav({ className }: { className?: string }) {
                     type="submit"
                     disabled={addingFolder || !newFolderName.trim()}
                   >
-                    {addingFolder ? "Creating..." : "Create folder"}
+                    {addingFolder ? t("creating") : t("createFolder")}
                   </Button>
                 </form>
               </DialogContent>
@@ -249,7 +256,7 @@ export function DashboardNav({ className }: { className?: string }) {
       )}
       {!minimal && folders.length === 0 && (
         <div className="mx-3 rounded-lg border border-dashed border-neutral-200 px-3 py-3 text-xs text-neutral-400">
-          No folders yet
+          {t("noFolders")}
         </div>
       )}
       {folders.map((folder) => (

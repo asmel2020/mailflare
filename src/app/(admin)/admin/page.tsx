@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { BadgeDollarSign, Globe2, KeyRound, Mail, Palette, Settings, Users, Webhook } from "lucide-react";
 import { AdminUpdateCard } from "@/components/admin-update-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,32 +7,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 const sections = [
 	{
 		href: "/mailboxes",
-		title: "Mailboxes",
-		description: "Create and manage mailbox addresses.",
+		titleKey: "mailboxesTitle",
+		descriptionKey: "mailboxesDescription",
 		icon: Mail,
 	},
 	{
 		href: "/domains",
-		title: "Domains",
-		description: "Add Cloudflare domains and inspect DNS state.",
+		titleKey: "domainsTitle",
+		descriptionKey: "domainsDescription",
 		icon: Globe2,
 	},
 	{
 		href: "/branding",
-		title: "Branding",
-		description: "Customize the app name, icon, and favicon.",
+		titleKey: "brandingTitle",
+		descriptionKey: "brandingDescription",
 		icon: Palette,
 	},
 	{
 		href: "/licenses",
-		title: "Licenses",
-		description: "Compare Pro and Team perpetual licenses.",
+		titleKey: "licensesTitle",
+		descriptionKey: "licensesDescription",
 		icon: BadgeDollarSign,
 	},
 	{
 		href: "/accounts",
-		title: "Accounts",
-		description: "Add and manage user accounts with a Team license.",
+		titleKey: "accountsTitle",
+		descriptionKey: "accountsDescription",
 		icon: Users,
 	},
 	// {
@@ -54,13 +55,15 @@ const sections = [
 	// },
 ];
 
-export default function AdminSettingsPage() {
+export default async function AdminSettingsPage() {
+	const t = await getTranslations("admin");
+
 	return (
 		<div>
 			<div className="mb-8">
-				<h1 className="text-3xl font-medium text-neutral-900">Admin settings</h1>
+				<h1 className="text-3xl font-medium text-neutral-900">{t("pageTitle")}</h1>
 				<p className="mt-2 text-sm text-neutral-500">
-					Manage workspace-level mail infrastructure and integrations.
+					{t("pageDescription")}
 				</p>
 			</div>
 			<div className="grid lg:grid-cols-2 gap-4">
@@ -74,10 +77,10 @@ export default function AdminSettingsPage() {
 									<div className="flex h-10 w-10 items-center justify-center rounded-full bg-blue-100 text-blue-700">
 										<Icon className="h-5 w-5" />
 									</div>
-									<CardTitle className="text-base">{section.title}</CardTitle>
+									<CardTitle className="text-base">{t(section.titleKey)}</CardTitle>
 								</CardHeader>
 								<CardContent className="pt-4">
-									<p className="text-sm text-neutral-500">{section.description}</p>
+									<p className="text-sm text-neutral-500">{t(section.descriptionKey)}</p>
 								</CardContent>
 							</Card>
 						</Link>

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import {
   Inbox,
@@ -57,6 +58,7 @@ export function ShortcutsProvider({
   extraCommands?: CommandItem[];
 }) {
   const router = useRouter();
+  const t = useTranslations("shortcuts");
   const { openComposer } = useCompose();
   const {
     enabled: shortcutsEnabled,
@@ -109,29 +111,29 @@ export function ShortcutsProvider({
       {
         key: "k",
         modifiers: ["meta", "ctrl"],
-        label: "Command Palette",
+        label: t("shortcutCommandPalette"),
         category: "General",
         action: () => setIsCommandPaletteOpen((prev) => !prev),
       },
       {
         key: "?",
-        label: "Shortcuts Cheat Sheet",
+        label: t("shortcutShortcutsCheatSheet"),
         category: "General",
         action: () => setIsHelpModalOpen((prev) => !prev),
       },
       {
         key: "c",
-        label: "Compose Email",
+        label: t("shortcutComposeEmail"),
         category: "Composing",
         action: () => openComposer(),
       },
       {
         key: "/",
-        label: "Search Mail",
+        label: t("shortcutSearchMail"),
         category: "Navigation",
         action: () => {
           const searchInput = document.querySelector<HTMLInputElement>(
-            'input[placeholder*="Search"]'
+            'input[data-mail-search-input="true"]'
           );
           if (searchInput) {
             searchInput.focus();
@@ -141,55 +143,55 @@ export function ShortcutsProvider({
       },
       {
         key: "g i",
-        label: "Go to Inbox",
+        label: t("goToInbox"),
         category: "Navigation",
         action: () => router.push("/inbox"),
       },
       {
         key: "g s",
-        label: "Go to Starred",
+        label: t("goToStarred"),
         category: "Navigation",
         action: () => router.push("/starred"),
       },
       {
         key: "g z",
-        label: "Go to Snoozed",
+        label: t("goToSnoozed"),
         category: "Navigation",
         action: () => router.push("/snoozed"),
       },
       {
         key: "g t",
-        label: "Go to Sent",
+        label: t("goToSent"),
         category: "Navigation",
         action: () => router.push("/sent"),
       },
       {
         key: "g d",
-        label: "Go to Drafts",
+        label: t("goToDrafts"),
         category: "Navigation",
         action: () => router.push("/drafts"),
       },
       {
         key: "g a",
-        label: "Go to Archived",
+        label: t("goToArchived"),
         category: "Navigation",
         action: () => router.push("/archived"),
       },
       {
         key: "g !",
-        label: "Go to Spam",
+        label: t("goToSpam"),
         category: "Navigation",
         action: () => router.push("/spam"),
       },
       {
         key: "g x",
-        label: "Go to Trash",
+        label: t("goToTrash"),
         category: "Navigation",
         action: () => router.push("/trash"),
       },
       {
         key: "escape",
-        label: "Dismiss Modal / Clear Focus",
+        label: t("dismissModal"),
         category: "General",
         action: () => {
           setIsCommandPaletteOpen(false);
@@ -198,7 +200,7 @@ export function ShortcutsProvider({
       },
       ...customShortcuts,
     ];
-  }, [router, openComposer, customShortcuts]);
+  }, [router, openComposer, customShortcuts, t]);
 
   useHotkeys(baseShortcuts, { enabled: shortcutsEnabled && !shortcutsPreferenceLoading });
 
@@ -207,8 +209,8 @@ export function ShortcutsProvider({
     const builtins: CommandItem[] = [
       {
         id: "compose",
-        title: "Compose new message",
-        subtitle: "Open draft editor",
+        title: t("commandCompose"),
+        subtitle: t("commandComposeSubtitle"),
         category: "Actions",
         icon: MailPlus,
         shortcut: "c",
@@ -216,7 +218,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-inbox",
-        title: "Go to Inbox",
+        title: t("goToInbox"),
         category: "Navigation",
         icon: Inbox,
         shortcut: "g i",
@@ -224,7 +226,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-starred",
-        title: "Go to Starred",
+        title: t("goToStarred"),
         category: "Navigation",
         icon: Star,
         shortcut: "g s",
@@ -232,7 +234,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-snoozed",
-        title: "Go to Snoozed",
+        title: t("goToSnoozed"),
         category: "Navigation",
         icon: Clock,
         shortcut: "g z",
@@ -240,7 +242,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-sent",
-        title: "Go to Sent",
+        title: t("goToSent"),
         category: "Navigation",
         icon: Send,
         shortcut: "g t",
@@ -248,7 +250,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-drafts",
-        title: "Go to Drafts",
+        title: t("goToDrafts"),
         category: "Navigation",
         icon: FileText,
         shortcut: "g d",
@@ -256,7 +258,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-archived",
-        title: "Go to Archived",
+        title: t("goToArchived"),
         category: "Navigation",
         icon: Archive,
         shortcut: "g a",
@@ -264,7 +266,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-spam",
-        title: "Go to Spam",
+        title: t("goToSpam"),
         category: "Navigation",
         icon: ShieldAlert,
         shortcut: "g !",
@@ -272,7 +274,7 @@ export function ShortcutsProvider({
       },
       {
         id: "nav-trash",
-        title: "Go to Trash",
+        title: t("goToTrash"),
         category: "Navigation",
         icon: Trash2,
         shortcut: "g x",
@@ -280,16 +282,16 @@ export function ShortcutsProvider({
       },
       {
         id: "settings-account",
-        title: "Account Settings",
-        subtitle: "Profile, password & preferences",
+        title: t("commandAccountSettings"),
+        subtitle: t("commandAccountSettingsSubtitle"),
         category: "Settings",
         icon: Settings,
         perform: () => router.push("/settings/account"),
       },
       {
         id: "show-help",
-        title: "Keyboard Shortcuts Cheat Sheet",
-        subtitle: "View all quick keys",
+        title: t("commandShortcuts"),
+        subtitle: t("commandShortcutsSubtitle"),
         category: "General",
         icon: HelpCircle,
         shortcut: "?",
@@ -298,7 +300,7 @@ export function ShortcutsProvider({
     ];
 
     return [...builtins, ...customCommands];
-  }, [router, openComposer, customCommands]);
+  }, [router, openComposer, customCommands, t]);
 
   return (
     <ShortcutsContext.Provider

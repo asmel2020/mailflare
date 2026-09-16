@@ -8,17 +8,23 @@ import type {
 } from "./types";
 
 export const WEBHOOK_EVENTS: { value: WebhookEvent; label: string; hint: string }[] = [
-	{ value: "message.inbound", label: "Inbound message", hint: "A message was received and stored" },
-	{ value: "message.outbound", label: "Outbound message", hint: "A message was sent" },
-	{ value: "message.failed", label: "Delivery failure", hint: "An outbound message failed" },
+	{ value: "message.inbound", label: "eventInboundLabel", hint: "eventInboundHint" },
+	{ value: "message.outbound", label: "eventOutboundLabel", hint: "eventOutboundHint" },
+	{ value: "message.failed", label: "eventFailedLabel", hint: "eventFailedHint" },
 ];
 
+export const WEBHOOK_EVENT_LABEL_KEYS: Record<WebhookEvent, string> = {
+	"message.inbound": "eventInboundLabel",
+	"message.outbound": "eventOutboundLabel",
+	"message.failed": "eventFailedLabel",
+};
+
 export const DELIVERY_STATUS_LABELS = {
-	pending: "Pending",
-	delivered: "Delivered",
-	failed: "Failed",
-	retrying: "Retrying",
-	exhausted: "Gave up",
+	pending: "statusPending",
+	delivered: "statusDelivered",
+	failed: "statusFailed",
+	retrying: "statusRetrying",
+	exhausted: "statusExhausted",
 } as const;
 
 async function readJson<T>(res: Response): Promise<T> {

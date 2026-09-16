@@ -31,10 +31,11 @@ const MIGRATION_NAMES = [
 	"0029_add_spam_protection.sql",
 	"0030_add_message_search_index.sql",
 	"0031_add_password_reset_and_mfa.sql",
+	"0032_add_locale.sql",
 ];
 
 const INITIAL_SCHEMA_SQL = `
-CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY NOT NULL, email text NOT NULL UNIQUE, reset_email text, forwarding_email text, password_hash text NOT NULL, name text NOT NULL, avatar_key text, role text DEFAULT 'user' NOT NULL, disabled integer DEFAULT false NOT NULL, can_manage_mailboxes integer DEFAULT false NOT NULL, keyboard_shortcuts_enabled integer DEFAULT true NOT NULL, spam_protection_enabled integer DEFAULT true NOT NULL, totp_secret text, totp_enabled integer DEFAULT false NOT NULL, totp_confirmed_at integer, created_by_user_id text REFERENCES users(id) ON DELETE set null, created_at integer NOT NULL);
+CREATE TABLE IF NOT EXISTS users (id text PRIMARY KEY NOT NULL, email text NOT NULL UNIQUE, reset_email text, forwarding_email text, password_hash text NOT NULL, name text NOT NULL, locale text, avatar_key text, role text DEFAULT 'user' NOT NULL, disabled integer DEFAULT false NOT NULL, can_manage_mailboxes integer DEFAULT false NOT NULL, keyboard_shortcuts_enabled integer DEFAULT true NOT NULL, spam_protection_enabled integer DEFAULT true NOT NULL, totp_secret text, totp_enabled integer DEFAULT false NOT NULL, totp_confirmed_at integer, created_by_user_id text REFERENCES users(id) ON DELETE set null, created_at integer NOT NULL);
 CREATE INDEX IF NOT EXISTS users_created_by_idx ON users(created_by_user_id);
 CREATE TABLE IF NOT EXISTS domains (id text PRIMARY KEY NOT NULL, user_id text NOT NULL REFERENCES users(id) ON DELETE cascade, hostname text NOT NULL, zone_id text NOT NULL, status text DEFAULT 'pending' NOT NULL, routing_status text, sending_subdomain_tag text, sending_requested integer DEFAULT false NOT NULL, sending_enabled integer DEFAULT false NOT NULL, routing_enabled integer DEFAULT false NOT NULL, created_at integer NOT NULL);
 CREATE UNIQUE INDEX IF NOT EXISTS domains_hostname_idx ON domains(hostname);
@@ -108,7 +109,7 @@ INSERT OR IGNORE INTO backup_settings (id, enabled, schedule_type, retention_ena
 CREATE TABLE IF NOT EXISTS backups (id text PRIMARY KEY NOT NULL, status text DEFAULT 'queued' NOT NULL, trigger text NOT NULL, r2_key text, filename text, size integer, error text, created_by_user_id text REFERENCES users(id) ON DELETE set null, created_at integer NOT NULL, started_at integer, completed_at integer);
 CREATE INDEX IF NOT EXISTS backups_created_idx ON backups(created_at);
 CREATE INDEX IF NOT EXISTS backups_status_idx ON backups(status);
-CREATE TABLE IF NOT EXISTS app_settings (id text PRIMARY KEY NOT NULL, app_name text DEFAULT 'Mailflare' NOT NULL, icon_key text, updated_at integer NOT NULL);
+CREATE TABLE IF NOT EXISTS app_settings (id text PRIMARY KEY NOT NULL, app_name text DEFAULT 'Mailflare' NOT NULL, default_locale text, icon_key text, updated_at integer NOT NULL);
 INSERT OR IGNORE INTO app_settings (id, app_name, updated_at) VALUES ('default', 'Mailflare', unixepoch());
 CREATE TABLE IF NOT EXISTS license_settings (id text PRIMARY KEY NOT NULL, instance_id text NOT NULL, instance_url text, license_key_hash text, plan text DEFAULT 'community' NOT NULL, state text DEFAULT 'inactive' NOT NULL, features text DEFAULT '[]' NOT NULL, activated_at integer, validated_at integer, updated_at integer NOT NULL);
 CREATE UNIQUE INDEX IF NOT EXISTS license_settings_instance_id_unique ON license_settings(instance_id);

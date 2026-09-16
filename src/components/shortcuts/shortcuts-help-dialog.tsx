@@ -1,8 +1,17 @@
 "use client";
 
 import React from "react";
+import { useTranslations } from "next-intl";
 import { X, Keyboard } from "lucide-react";
 import type { ShortcutDefinition } from "./types";
+
+const categoryKeys: Record<string, string> = {
+  Navigation: "categoryNavigation",
+  Actions: "categoryActions",
+  Composing: "categoryComposing",
+  Selection: "categorySelection",
+  General: "categoryGeneral",
+};
 
 interface ShortcutsHelpDialogProps {
   isOpen: boolean;
@@ -15,6 +24,7 @@ export function ShortcutsHelpDialog({
   onClose,
   shortcuts,
 }: ShortcutsHelpDialogProps) {
+  const t = useTranslations("shortcuts");
   if (!isOpen) return null;
 
   const grouped = shortcuts.reduce((acc, item) => {
@@ -53,10 +63,10 @@ export function ShortcutsHelpDialog({
             </div>
             <div>
               <h2 className="text-base font-semibold text-neutral-900 dark:text-neutral-100">
-                Keyboard Shortcuts
+                {t("helpTitle")}
               </h2>
               <p className="text-xs text-neutral-400">
-                Superhuman &amp; Gmail style quick keys
+                {t("helpSubtitle")}
               </p>
             </div>
           </div>
@@ -74,7 +84,7 @@ export function ShortcutsHelpDialog({
           {Object.entries(grouped).map(([category, items]) => (
             <div key={category} className="space-y-3">
               <h3 className="text-xs font-semibold uppercase tracking-wider text-neutral-400 dark:text-neutral-500 border-b border-neutral-100 dark:border-neutral-800/80 pb-1.5">
-                {category}
+                {t(categoryKeys[category] ?? "categoryGeneral")}
               </h3>
               <div className="space-y-2">
                 {items.map((item, idx) => (
@@ -98,18 +108,18 @@ export function ShortcutsHelpDialog({
         {/* Footer */}
         <div className="px-6 py-3 bg-neutral-50 dark:bg-neutral-950/60 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs text-neutral-400">
           <span>
-            Press{" "}
+            {t("press")}{" "}
             <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded font-mono">
               ?
             </kbd>{" "}
-            to toggle
+            {t("toToggle")}
           </span>
           <span>
-            Press{" "}
+            {t("press")}{" "}
             <kbd className="px-1.5 py-0.5 bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 rounded font-mono">
               ESC
             </kbd>{" "}
-            to close
+            {t("toClose")}
           </span>
         </div>
       </div>

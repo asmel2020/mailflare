@@ -1,33 +1,37 @@
 import type { SettingsNavSection } from "./settings-nav-types";
 
+/**
+ * Labels are message keys resolved by `SettingsNav` against the `settingsNav`
+ * namespace, not display text.
+ */
 export const settingsNavSections: SettingsNavSection[] = [
 	{
-		label: "Settings",
+		label: "sectionSettings",
 		items: [
 			{
 				href: "/settings/account",
-				label: "Account",
+				label: "account",
 			},
 			{
 				href: "/settings/inbox",
-				label: "Inbox",
+				label: "inbox",
 			},
 			{
 				href: "/settings/rules",
-				label: "Rules & Routing",
+				label: "rules",
 			},
 		],
 	},
 	{
-		label: "Mailbox",
+		label: "sectionMailbox",
 		items: [
 			{
 				href: "/settings/import",
-				label: "Import",
+				label: "import",
 			},
 			{
 				href: "/settings/export",
-				label: "Export",
+				label: "export",
 			},
 		],
 	},

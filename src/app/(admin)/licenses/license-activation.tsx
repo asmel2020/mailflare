@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import type { ActivatableLicensePlan, LicenseAction } from "./types";
 import { formatLicensePlan, loadLicenseStatus, runLicenseAction } from "./utils";
 
 export function LicenseActivation() {
+	const t = useTranslations("licensesAdmin");
 	const [license, setLicense] = useState<LicenseStatus | null>(null);
 	const [licenseKey, setLicenseKey] = useState("");
 	const [selectedPlan, setSelectedPlan] = useState<ActivatableLicensePlan>("pro");
@@ -28,7 +30,7 @@ export function LicenseActivation() {
 				if (!cancelled) setLicense(nextLicense);
 			})
 			.catch((error) => {
-				if (!cancelled) setStatus(error instanceof Error ? error.message : "Unable to load license status");
+				if (!cancelled) setStatus(error instanceof Error ? error.message : t("unableToLoadStatus"));
 			})
 			.finally(() => {
 				if (!cancelled) setLoading(false);
@@ -36,14 +38,14 @@ export function LicenseActivation() {
 		return () => {
 			cancelled = true;
 		};
-	}, []);
+	}, [t]);
 
 	async function submit(nextAction: LicenseAction) {
 		if (nextAction !== "deactivate" && !licenseKey.trim()) {
-			setStatus("Enter your license key");
+			setStatus(t("enterLicenseKey"));
 			return;
 		}
-		if (nextAction === "deactivate" && !window.confirm("Deactivate this license on this installation?")) return;
+		if (nextAction === "deactivate" && !window.confirm(t("deactivateConfirm"))) return;
 
 		setAction(nextAction);
 		setStatus(null);
@@ -51,9 +53,9 @@ export function LicenseActivation() {
 			const nextLicense = await runLicenseAction(nextAction, licenseKey, nextAction === "activate" ? selectedPlan : undefined);
 			setLicense(nextLicense);
 			setLicenseKey("");
-			setStatus(nextAction === "deactivate" ? "License deactivated" : nextAction === "validate" ? "License validated" : "License activated");
+			setStatus(nextAction === "deactivate" ? t("licenseDeactivated") : nextAction === "validate" ? t("licenseValidated") : t("licenseActivatedStatus"));
 		} catch (error) {
-			setStatus(error instanceof Error ? error.message : "License request failed");
+			setStatus(error instanceof Error ? error.message : t("requestFailed"));
 			try {
 				setLicense(await loadLicenseStatus());
 			} catch {
@@ -76,12 +78,12 @@ export function LicenseActivation() {
 						<CheckCircle2 className="h-6 w-6" />
 					</span>
 					<div className="min-w-0 flex-1">
-						<CardTitle>License activated</CardTitle>
+						<CardTitle>{t("activatedTitle")}</CardTitle>
 						<p className="mt-2 text-sm leading-6 text-neutral-600">
-							Your {formatLicensePlan(license.plan)} license is active. Licensed features are ready to use.
+							{t("activeDescription", { plan: formatLicensePlan(license.plan) })}
 						</p>
 						<Button type="button" variant="outline" className="mt-5" onClick={() => void submit("deactivate")} disabled={action !== null}>
-							{action === "deactivate" ? "Deactivating..." : "Deactivate license"}
+							{action === "deactivate" ? t("deactivating") : t("deactivateLicense")}
 						</Button>
 						{status && <p className="mt-3 text-sm text-neutral-500">{status}</p>}
 					</div>
@@ -95,8 +97,8 @@ export function LicenseActivation() {
 			<CardHeader>
 				<div className="flex items-center justify-between gap-4">
 					<div className="space-y-1.5">
-						<CardTitle>License activation</CardTitle>
-						<CardDescription>Activate the key delivered after your Paymug purchase.</CardDescription>
+						<CardTitle>{t("activationTitle")}</CardTitle>
+						<CardDescription>{t("activationDescription")}</CardDescription>
 					</div>
 					<Badge variant={license?.active ? "default" : "outline"}>
 						{formatLicensePlan(license?.plan ?? "community")}
@@ -106,12 +108,12 @@ export function LicenseActivation() {
 			<CardContent className="space-y-5 pb-6">
 				{hasActivation && license && (
 					<p className="rounded-2xl bg-amber-50 px-4 py-3 text-sm text-amber-800">
-						This license is currently {license.state}. Enter its key to validate or deactivate it.
+						{t("stateHint", { state: license.state })}
 					</p>
 				)}
 				{!hasActivation && (
 					<div className="space-y-2">
-						<Label htmlFor="licensePlan">Product</Label>
+						<Label htmlFor="licensePlan">{t("product")}</Label>
 						<Select
 							id="licensePlan"
 							value={selectedPlan}
@@ -125,31 +127,31 @@ export function LicenseActivation() {
 					</div>
 				)}
 				<div className="space-y-2">
-					<Label htmlFor="licenseKey">License key</Label>
+					<Label htmlFor="licenseKey">{t("licenseKey")}</Label>
 					<Input
 						id="licenseKey"
 						type="password"
 						autoComplete="off"
 						value={licenseKey}
 						onChange={(event) => setLicenseKey(event.target.value)}
-						placeholder="Enter your Paymug license key"
+						placeholder={t("licenseKeyPlaceholder")}
 						disabled={action !== null}
 					/>
-					<p className="text-xs text-neutral-500">The key is sent directly to Paymug and is not stored. Mailflare keeps only a one-way hash. Activation binds the key to this installation and URL.</p>
+					<p className="text-xs text-neutral-500">{t("licenseKeyHint")}</p>
 				</div>
 				<div className="flex flex-wrap items-center gap-3">
 					{hasActivation ? (
 						<>
 							<Button type="button" onClick={() => void submit("validate")} disabled={action !== null}>
-								{action === "validate" ? "Validating..." : "Validate license"}
+								{action === "validate" ? t("validating") : t("validateLicense")}
 							</Button>
 							<Button type="button" variant="outline" onClick={() => void submit("deactivate")} disabled={action !== null}>
-								{action === "deactivate" ? "Deactivating..." : "Deactivate"}
+								{action === "deactivate" ? t("deactivating") : t("deactivate")}
 							</Button>
 						</>
 					) : (
 						<Button type="button" onClick={() => void submit("activate")} disabled={action !== null}>
-							{action === "activate" ? "Activating..." : "Activate license"}
+							{action === "activate" ? t("activating") : t("activateLicense")}
 						</Button>
 					)}
 					{status && <p className="text-sm text-neutral-500">{status}</p>}

@@ -2,6 +2,7 @@
 
 import { useRef, useState } from "react";
 import type { KeyboardEvent } from "react";
+import { useTranslations } from "next-intl";
 import { X } from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { getEmailAddress } from "@/lib/email/address";
@@ -25,6 +26,7 @@ export function RecipientInput({
 	autoFocus,
 	trailing,
 }: RecipientInputProps) {
+	const t = useTranslations("compose");
 	const [draft, setDraft] = useState("");
 	const inputRef = useRef<HTMLInputElement | null>(null);
 
@@ -74,7 +76,7 @@ export function RecipientInput({
 							{!disabled && (
 								<button
 									type="button"
-									aria-label={`Remove ${getEmailAddress(entry)}`}
+									aria-label={t("removeRecipient", { email: getEmailAddress(entry) })}
 									className="rounded-full p-0.5 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
 									onClick={(event) => {
 										event.stopPropagation();

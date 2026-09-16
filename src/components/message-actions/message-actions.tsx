@@ -2,6 +2,7 @@
 
 import { createElement, useState, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Archive, Ban, BellOff, Forward, Mail, MailOpen, MoreVertical, Reply, ReplyAll, ShieldAlert, Trash2 } from "lucide-react";
 import { useCompose } from "@/components/compose/compose-context";
 import { useHotkeys, useShortcuts } from "@/components/shortcuts";
@@ -10,7 +11,6 @@ import { Tooltip } from "@/components/ui/tooltip";
 import type { BulkMessageAction } from "@/app/api/messages/bulk/types";
 import type { MessageActionsProps, ReplyMode } from "./types";
 import {
-	confirmTrashWithoutUnsubscribe,
 	blockMessageContact,
 	createForwardDraft,
 	createReplyDraft,
@@ -40,6 +40,7 @@ export function MessageActions({
 	messageMeta,
 	bodyHtml,
 }: MessageActionsProps) {
+	const t = useTranslations("messageActions");
 	const router = useRouter();
 	const { openDraftComposer } = useCompose();
 	const { shortcutsEnabled } = useShortcuts();
@@ -59,11 +60,11 @@ export function MessageActions({
 			if (redirect) router.push(redirect);
 			router.refresh();
 		} catch {
-			setError("Could not update message");
+			setError(t("updateFailed"));
 		} finally {
 			setPendingAction(null);
 		}
-	}, [messageId, direction, router]);
+	}, [messageId, direction, router, t]);
 
 	const replyable = useMemo(() => message ?? {
 		direction,
@@ -93,17 +94,17 @@ export function MessageActions({
 			});
 			openDraftComposer(draftId);
 		} catch (replyError) {
-			setError(replyError instanceof Error ? replyError.message : "Could not start reply");
+			setError(replyError instanceof Error ? replyError.message : t("replyFailed"));
 		} finally {
 			setPendingAction(null);
 		}
-	}, [mailboxId, senderAddress, ownAddress, subject, bodyText, bodyHtml, messageMeta?.createdAt, replyable, ownAddresses, openDraftComposer]);
+	}, [mailboxId, senderAddress, ownAddress, subject, bodyText, bodyHtml, messageMeta, replyable, ownAddresses, openDraftComposer, t]);
 
 	const shortcuts = useMemo(
 		() => [
 			{
 				key: "e",
-				label: "Archive Message",
+				label: t("shortcutArchive"),
 				category: "Actions" as const,
 				action: () => {
 					if (status !== "archived") void runAction("archive");
@@ -111,7 +112,7 @@ export function MessageActions({
 			},
 			{
 				key: "y",
-				label: "Archive Message",
+				label: t("shortcutArchive"),
 				category: "Actions" as const,
 				action: () => {
 					if (status !== "archived") void runAction("archive");
@@ -119,7 +120,7 @@ export function MessageActions({
 			},
 			{
 				key: "#",
-				label: "Move to Trash",
+				label: t("shortcutTrash"),
 				category: "Actions" as const,
 				action: () => {
 					if (status !== "trash") void runAction("trash");
@@ -127,13 +128,13 @@ export function MessageActions({
 			},
 			{
 				key: "r",
-				label: "Reply to Message",
+				label: t("shortcutReply"),
 				category: "Composing" as const,
 				action: () => void handleReply("reply"),
 			},
 			{
 				key: "!",
-				label: "Report Spam",
+				label: t("shortcutSpam"),
 				category: "Actions" as const,
 				action: () => {
 					if (status !== "spam" && direction === "inbound") void runAction("spam");
@@ -141,12 +142,12 @@ export function MessageActions({
 			},
 			{
 				key: "u",
-				label: "Back to List",
+				label: t("shortcutBack"),
 				category: "Navigation" as const,
 				action: () => router.back(),
 			},
 		],
-		[status, direction, runAction, handleReply, router]
+		[status, direction, runAction, handleReply, router, t]
 	);
 
 	useHotkeys(shortcuts, { enabled: shortcutsEnabled });
@@ -159,10 +160,10 @@ export function MessageActions({
 			return;
 		}
 
-		if (!confirmTrashWithoutUnsubscribe()) return;
+		if (!window.confirm(t("confirmTrashWithoutUnsubscribe"))) return;
 		setPendingAction("unsubscribe");
 		if (!mailboxId) {
-			setError("Could not create trash rule");
+			setError(t("trashRuleFailed"));
 			setPendingAction(null);
 			return;
 		}
@@ -171,7 +172,7 @@ export function MessageActions({
 			await createTrashSenderRule({ mailboxId, senderAddress });
 			await runAction("trash");
 		} catch {
-			setError("Could not create trash rule");
+			setError(t("trashRuleFailed"));
 			setPendingAction(null);
 		}
 	}
@@ -190,7 +191,7 @@ export function MessageActions({
 			});
 			openDraftComposer(draftId);
 		} catch (forwardError) {
-			setError(forwardError instanceof Error ? forwardError.message : "Could not start forward");
+			setError(forwardError instanceof Error ? forwardError.message : t("forwardFailed"));
 		} finally {
 			setPendingAction(null);
 		}
@@ -199,7 +200,7 @@ export function MessageActions({
 		setMoreOpen(false);
 		setError(null);
 		if (!mailboxId) {
-			setError("Could not block contact");
+			setError(t("blockFailed"));
 			return;
 		}
 
@@ -219,17 +220,24 @@ export function MessageActions({
 	const disabled = pendingAction !== null;
 	const markAction: BulkMessageAction = read ? "unread" : "read";
 	const moveActions = getMoveMessageActions(status, direction);
+	const moveActionLabel = (action: string) => {
+		if (action === "inbox") return status === "spam" ? t("moveActionNotSpam") : t("moveActionInbox");
+		if (action === "archive") return t("moveActionArchive");
+		if (action === "spam") return t("moveActionSpam");
+		if (action === "trash") return t("moveActionTrash");
+		return action;
+	};
 
 	return (
 		<div className="flex items-center gap-3 text-neutral-600">
 			{error && <span className="text-xs text-red-600">{error}</span>}
 			<div className="flex items-center gap-2">
-				<Tooltip label={shortcutsEnabled ? "Reply (r)" : "Reply"}>
+				<Tooltip label={shortcutsEnabled ? t("replyWithShortcut") : t("reply")}>
 					<Button
 						type="button"
 						variant="ghost"
 						size="sm"
-						aria-label={shortcutsEnabled ? "Reply (r)" : "Reply"}
+						aria-label={shortcutsEnabled ? t("replyWithShortcut") : t("reply")}
 						disabled={disabled}
 						onClick={() => handleReply("reply")}
 					>
@@ -237,12 +245,12 @@ export function MessageActions({
 					</Button>
 				</Tooltip>
 				{canReplyAll && (
-					<Tooltip label="Reply all">
+					<Tooltip label={t("replyAll")}>
 						<Button
 							type="button"
 							variant="ghost"
 							size="sm"
-							aria-label="Reply all"
+							aria-label={t("replyAll")}
 							disabled={disabled}
 							onClick={() => handleReply("replyAll")}
 						>
@@ -251,12 +259,12 @@ export function MessageActions({
 					</Tooltip>
 				)}
 				{message && messageMeta && (
-					<Tooltip label="Forward">
+					<Tooltip label={t("forward")}>
 						<Button
 							type="button"
 							variant="ghost"
 							size="sm"
-							aria-label="Forward"
+							aria-label={t("forward")}
 							disabled={disabled}
 							onClick={() => void handleForward()}
 						>
@@ -264,44 +272,44 @@ export function MessageActions({
 						</Button>
 					</Tooltip>
 				)}
-				<Tooltip label={shortcutsEnabled ? "Archive (e)" : "Archive"}>
+				<Tooltip label={shortcutsEnabled ? t("archiveWithShortcut") : t("archive")}>
 					<Button
 						variant="ghost"
 						size="sm"
-						aria-label={shortcutsEnabled ? "Archive (e)" : "Archive"}
+						aria-label={shortcutsEnabled ? t("archiveWithShortcut") : t("archive")}
 						disabled={disabled || status === "archived"}
 						onClick={() => runAction("archive")}
 					>
 						<Archive className="h-5 w-5" />
 					</Button>
 				</Tooltip>
-				<Tooltip label={shortcutsEnabled ? "Report spam (!)" : "Report spam"}>
+				<Tooltip label={shortcutsEnabled ? t("reportSpamWithShortcut") : t("reportSpam")}>
 					<Button
 						variant="ghost"
 						size="sm"
-						aria-label={shortcutsEnabled ? "Report spam (!)" : "Report spam"}
+						aria-label={shortcutsEnabled ? t("reportSpamWithShortcut") : t("reportSpam")}
 						disabled={disabled || status === "spam" || direction !== "inbound"}
 						onClick={() => runAction("spam")}
 					>
 						<ShieldAlert className="h-5 w-5" />
 					</Button>
 				</Tooltip>
-				<Tooltip label={shortcutsEnabled ? "Delete (#)" : "Delete"}>
+				<Tooltip label={shortcutsEnabled ? t("deleteWithShortcut") : t("delete")}>
 					<Button
 						variant="ghost"
 						size="sm"
-						aria-label={shortcutsEnabled ? "Move to trash (#)" : "Move to trash"}
+						aria-label={shortcutsEnabled ? t("moveToTrashWithShortcut") : t("moveToTrash")}
 						disabled={disabled || status === "trash"}
 						onClick={() => runAction("trash")}
 					>
 						<Trash2 className="h-5 w-5" />
 					</Button>
 				</Tooltip>
-				<Tooltip label={read ? "Mark as unread" : "Mark as read"}>
+				<Tooltip label={read ? t("markAsUnread") : t("markAsRead")}>
 					<Button
 						variant="ghost"
 						size="sm"
-						aria-label={read ? "Mark as unread" : "Mark as read"}
+						aria-label={read ? t("markAsUnread") : t("markAsRead")}
 						disabled={disabled}
 						onClick={() => runAction(markAction)}
 					>
@@ -309,12 +317,12 @@ export function MessageActions({
 					</Button>
 				</Tooltip>
 				<div className="relative">
-					<Tooltip label="More actions">
+					<Tooltip label={t("moreActions")}>
 						<Button
 							type="button"
 							variant="ghost"
 							size="sm"
-							aria-label="More actions"
+							aria-label={t("moreActions")}
 							aria-expanded={moreOpen}
 							disabled={disabled}
 							onClick={() => setMoreOpen((open) => !open)}
@@ -333,7 +341,7 @@ export function MessageActions({
 									onClick={() => void onUnsubscribe()}
 								>
 									<BellOff className="h-4 w-4 shrink-0" />
-									Unsubscribe
+									{t("unsubscribe")}
 									</button>
 									<button
 										type="button"
@@ -341,13 +349,13 @@ export function MessageActions({
 										onClick={() => void onBlockContact()}
 									>
 										<Ban className="h-4 w-4" />
-										Block contact
+										{t("blockContact")}
 									</button>
 							<hr className="my-1 border-neutral-100" />
 								</>
 							)}
 							<p className="mt-1 px-3 pb-1 pt-2 text-sm font-medium text-neutral-500">
-								Move to
+								{t("moveTo")}
 							</p>
 							{moveActions.map((item) => (
 								<button
@@ -357,7 +365,7 @@ export function MessageActions({
 									onClick={() => void runAction(item.action)}
 								>
 									{createElement(item.icon, { size: 16 })}
-									{item.label}
+									{moveActionLabel(item.action)}
 								</button>
 							))}
 						</div>

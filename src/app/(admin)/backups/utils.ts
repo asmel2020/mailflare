@@ -2,13 +2,13 @@ import { authFetch } from "@/lib/auth/client";
 import type { BackupItem, BackupsResponse, BackupSettings } from "./types";
 
 export const WEEKDAYS = [
-	{ value: 0, label: "Sunday" },
-	{ value: 1, label: "Monday" },
-	{ value: 2, label: "Tuesday" },
-	{ value: 3, label: "Wednesday" },
-	{ value: 4, label: "Thursday" },
-	{ value: 5, label: "Friday" },
-	{ value: 6, label: "Saturday" },
+	{ value: 0, label: "weekdaySunday" },
+	{ value: 1, label: "weekdayMonday" },
+	{ value: 2, label: "weekdayTuesday" },
+	{ value: 3, label: "weekdayWednesday" },
+	{ value: 4, label: "weekdayThursday" },
+	{ value: 5, label: "weekdayFriday" },
+	{ value: 6, label: "weekdaySaturday" },
 ];
 
 export async function fetchBackups(): Promise<BackupsResponse> {

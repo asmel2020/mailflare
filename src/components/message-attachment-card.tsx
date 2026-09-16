@@ -1,19 +1,35 @@
 "use client";
 
 import { ArrowDownToLine, Play } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { formatAttachmentSize } from "@/app/(dashboard)/inbox/[messageId]/utils";
 import type { MessageAttachmentCardProps } from "./message-attachment-card-types";
 import { getAttachmentFileUrl } from "./message-attachment-viewer-utils";
 import { getAttachmentVisual } from "./message-attachment-card-utils";
+
+const kindKeys: Record<string, string> = {
+	Image: "kindImage",
+	Video: "kindVideo",
+	Audio: "kindAudio",
+	PDF: "kindPdf",
+	Spreadsheet: "kindSpreadsheet",
+	Presentation: "kindPresentation",
+	Archive: "kindArchive",
+	Code: "kindCode",
+	Document: "kindDocument",
+	File: "kindFile",
+};
 
 export function MessageAttachmentCard({
 	attachment,
 	messageId,
 	onPreview,
 }: MessageAttachmentCardProps) {
+	const t = useTranslations("attachments");
 	const visual = getAttachmentVisual(attachment);
 	const Icon = visual.icon;
 	const previewUrl = getAttachmentFileUrl(messageId, attachment.id, "preview");
+	const kindLabel = kindKeys[visual.label] ? t(kindKeys[visual.label]) : visual.label;
 
 	return (
 		<button
@@ -53,7 +69,7 @@ export function MessageAttachmentCard({
 					{attachment.filename}
 				</span>
 				<span className="mt-0.5 block truncate text-xs text-neutral-500">
-					{visual.label} · {formatAttachmentSize(attachment.size)}
+					{kindLabel} · {formatAttachmentSize(attachment.size)}
 				</span>
 			</span>
 			<ArrowDownToLine className="h-4 w-4 shrink-0 text-neutral-400 transition-colors group-hover:text-blue-600" />

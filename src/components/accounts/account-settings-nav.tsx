@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useParams, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import {
 	accountSettingsNavItems,
@@ -12,12 +13,13 @@ import {
 export function AccountSettingsNav() {
 	const { id } = useParams<{ id: string }>();
 	const pathname = usePathname();
+	const t = useTranslations("accountsAdmin");
 
 	return (
 		<aside className="w-full shrink-0 lg:w-48">
 			<div className="sticky top-6 space-y-3">
 				<h2 className="px-4 text-xs font-semibold uppercase tracking-wide text-neutral-500">
-					Account settings
+					{t("navHeading")}
 				</h2>
 				<nav className="space-y-1">
 					{accountSettingsNavItems.map((item) => {
@@ -33,7 +35,7 @@ export function AccountSettingsNav() {
 										: "text-neutral-600 hover:bg-white/70 hover:text-neutral-900",
 								)}
 							>
-								{item.label}
+								{t(item.label)}
 							</Link>
 						);
 					})}

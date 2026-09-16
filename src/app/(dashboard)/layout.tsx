@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { HelpCircle } from "lucide-react";
 import { AuthGuard } from "@/components/auth/auth-guard";
 import { ComposeProvider } from "@/components/compose/compose-context";
@@ -19,6 +20,7 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const t = useTranslations("shell");
   return (
     <AuthGuard>
       <SidebarProvider>
@@ -36,7 +38,7 @@ export default function DashboardLayout({
                       <Link
                         href="/settings/account"
                         className="flex h-10 w-10 items-center justify-center rounded-full text-neutral-600 hover:bg-neutral-200"
-                        title="Account Settings"
+                        title={t("accountSettings")}
                       >
                         <HelpCircle className="h-5 w-5" />
                       </Link>

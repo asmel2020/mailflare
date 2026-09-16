@@ -4,8 +4,8 @@ import type { LicenseStatus } from "@/lib/licenses/types";
 export type LicensePlan = {
 	name: string;
 	price: number;
-	description: string;
-	features: string[];
+	descriptionKey: string;
+	featureKeys: string[];
 	icon: LucideIcon;
 	checkoutUrl: string;
 	originalPrice?: number,

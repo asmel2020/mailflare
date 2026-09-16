@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +10,7 @@ import { getApplicationUpdateStatus, triggerApplicationUpdate } from "./admin-up
 import type { UpdateStatusResponse, UpdateWorkflowResponse } from "./admin-update-card-types";
 
 export function AdminUpdateCard() {
+	const t = useTranslations("adminUpdate");
 	const [status, setStatus] = useState<UpdateStatusResponse>();
 	const [result, setResult] = useState<UpdateWorkflowResponse>();
 	const [error, setError] = useState("");
@@ -24,7 +26,7 @@ export function AdminUpdateCard() {
 			})
 			.catch((statusError) => {
 				if (isActive) {
-					setError(statusError instanceof Error ? statusError.message : "Could not check for updates");
+					setError(statusError instanceof Error ? statusError.message : t("couldNotCheckForUpdates"));
 				}
 			})
 			.finally(() => {
@@ -34,7 +36,7 @@ export function AdminUpdateCard() {
 		return () => {
 			isActive = false;
 		};
-	}, []);
+	}, [t]);
 
 	async function handleUpdate() {
 		setError("");
@@ -44,7 +46,7 @@ export function AdminUpdateCard() {
 		try {
 			setResult(await triggerApplicationUpdate());
 		} catch (updateError) {
-			setError(updateError instanceof Error ? updateError.message : "Could not start the update");
+			setError(updateError instanceof Error ? updateError.message : t("couldNotStartUpdate"));
 		} finally {
 			setIsPending(false);
 		}
@@ -57,32 +59,32 @@ export function AdminUpdateCard() {
 					<RefreshCw className="h-5 w-5" />
 				</div>
 				<div>
-					<CardTitle className="text-base">Application update</CardTitle>
+					<CardTitle className="text-base">{t("title")}</CardTitle>
 					<p className="mt-1 text-sm text-neutral-500">
-						Sync the latest Mailflare release, apply D1 migrations, and deploy the Worker.
+						{t("description")}
 					</p>
 				</div>
 			</CardHeader>
 			<CardContent className="flex items-center gap-4 pt-5">
 				<Button type="button" onClick={handleUpdate} disabled={isChecking || isPending || !status?.available}>
 					<RefreshCw className={isPending ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
-					{isPending ? "Starting update..." : "Update Mailflare"}
+					{isPending ? t("startingUpdate") : t("updateButton")}
 				</Button>
 				{isChecking && <Skeleton className="h-4 w-44" />}
 				{!isChecking && status?.available && (
 					<p className="text-sm text-amber-700">
-						Update available: v{status.currentVersion} → v{status.targetVersion}
+						{t("updateAvailable", { currentVersion: status.currentVersion ?? "", targetVersion: status.targetVersion ?? "" })}
 					</p>
 				)}
 				{!isChecking && status && !status.available && (
-					<p className="text-sm text-green-700">Mailflare v{status.currentVersion} is up to date.</p>
+					<p className="text-sm text-green-700">{t("upToDate", { version: status.currentVersion ?? "" })}</p>
 				)}
 				{result?.ok && (
 					<p className="text-sm text-green-700">
-						Update started for {result.repository}@{result.ref}.{" "}
+						{t("updateStarted", { repository: result.repository ?? "", ref: result.ref ?? "" })}{" "}
 						{result.runUrl && (
 							<a className="font-medium underline" href={result.runUrl} target="_blank" rel="noreferrer">
-								View workflow
+								{t("viewWorkflow")}
 							</a>
 						)}
 					</p>

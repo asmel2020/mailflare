@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowRight, CheckCircle2, LoaderCircle, MailPlus, XCircle } from "lucide-react";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { AuthShell } from "@/components/auth/auth-shell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,6 +21,9 @@ import type { DomainPreflight, DomainSetupResult, SetupRequirementCheck } from "
 
 export function RegisterClient() {
   const router = useRouter();
+  const t = useTranslations("register");
+  const ts = useTranslations("sending");
+  const tc = useTranslations("common");
   const [hasAdminAccount, setHasAdminAccount] = useState<boolean | null>(null);
   const [hasPrimaryDomain, setHasPrimaryDomain] = useState<boolean | null>(
     null,
@@ -53,7 +57,7 @@ export function RegisterClient() {
       setChecks(preparation.data.checks ?? []);
       setDatabaseMigrated(!!preparation.data.migrated);
       if (!preparation.ok) {
-        setError(preparation.data.error ?? "Complete the missing configuration before continuing.");
+        setError(preparation.data.error ?? t("prepareFailed"));
         return;
       }
 
@@ -64,7 +68,7 @@ export function RegisterClient() {
       setPrimaryDomainSendingRequested(data.primaryDomain?.sendingRequested ?? null);
       setPreparationComplete(true);
     } catch (error) {
-      setError(error instanceof Error ? error.message : "Installation preparation failed");
+      setError(error instanceof Error ? error.message : t("prepareError"));
     } finally {
       setLoading(false);
     }
@@ -84,7 +88,7 @@ export function RegisterClient() {
     setLoading(false);
     if (!ok || !data.domain) {
       setError(
-        typeof data.error === "string" ? data.error : "Domain setup failed",
+        typeof data.error === "string" ? data.error : t("domainSetupFailed"),
       );
       return;
     }
@@ -104,7 +108,7 @@ export function RegisterClient() {
     if (!ok || !data.domain) {
       setDomainCheck(null);
       setEnableSending(false);
-      setError(typeof data.error === "string" ? data.error : "Domain check failed");
+      setError(typeof data.error === "string" ? data.error : t("domainCheckFailed"));
       return;
     }
 
@@ -121,7 +125,7 @@ export function RegisterClient() {
     const domain = setupDomain ?? primaryDomain;
     if (!domain) {
       setLoading(false);
-      setError("Domain setup is not complete");
+      setError(t("domainIncomplete"));
       return;
     }
 
@@ -135,7 +139,7 @@ export function RegisterClient() {
     setLoading(false);
     if (!ok) {
       setError(
-        typeof data.error === "string" ? data.error : "Registration failed",
+        typeof data.error === "string" ? data.error : t("failed"),
       );
       setTurnstileReset((value) => value + 1);
       return;
@@ -150,27 +154,27 @@ export function RegisterClient() {
     return (
       <AuthShell
         icon={MailPlus}
-        title="Account registration is closed"
+        title={t("closedTitle")}
         footer={
           <Link
             href="/login"
             className="inline-flex items-center gap-2 hover:underline"
           >
-            Sign in instead
+            {t("signInInstead")}
             <ArrowRight className="h-4 w-4" />
           </Link>
         }
       >
         <div className="space-y-5">
           <p className="text-sm leading-6 text-neutral-600">
-            This installation already has an account for {primaryDomain ?? "this workspace"}.
+            {t("closedBody", { domain: primaryDomain ?? t("thisWorkspace") })}
           </p>
           <Button
             type="button"
             className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
             onClick={() => router.push("/login")}
           >
-            Go to login
+            {t("goToLogin")}
           </Button>
         </div>
       </AuthShell>
@@ -180,7 +184,7 @@ export function RegisterClient() {
   return (
     <AuthShell
       icon={MailPlus}
-      title={step === 1 ? "Prepare installation" : showDomainStep ? "Add your domain" : "Create your mailbox"}
+      title={step === 1 ? t("titleSystem") : showDomainStep ? t("titleDomain") : t("titleAccount")}
       // description={
       // 	showDomainStep
       // 		? "Connect the primary Cloudflare zone first so routing records can be created before the first mailbox."
@@ -188,22 +192,22 @@ export function RegisterClient() {
       // }
       steps={
         [
-          { label: "System", active: step === 1 },
-          { label: "Domain", active: step === 2 },
-          { label: "Account", active: step === 3 },
+          { label: t("stepSystem"), active: step === 1 },
+          { label: t("stepDomain"), active: step === 2 },
+          { label: t("stepAccount"), active: step === 3 },
         ]
       }
     >
       {step === 1 ? (
         <div className="space-y-5">
           <p className="text-sm leading-6 text-neutral-600">
-            Mailflare checks its required Cloudflare configuration and initializes a clean D1 database before setup continues.
+            {t("systemBody")}
           </p>
           <div className="space-y-2">
             {loading && checks.length === 0 && (
               <div className="flex items-center gap-3 rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-600">
                 <LoaderCircle className="h-4 w-4 animate-spin" />
-                Checking installation
+                {t("checkingInstallation")}
               </div>
             )}
             {checks.map((check) => (
@@ -222,7 +226,7 @@ export function RegisterClient() {
             {preparationComplete && (
               <div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
                 <CheckCircle2 className="h-4 w-4" />
-                {databaseMigrated ? "Clean database migrated successfully" : "Database schema is ready"}
+                {databaseMigrated ? t("dbMigrated") : t("dbReady")}
               </div>
             )}
           </div>
@@ -237,7 +241,7 @@ export function RegisterClient() {
               className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
               onClick={() => setStep(hasPrimaryDomain ? 3 : 2)}
             >
-              Continue
+              {tc("continue")}
             </Button>
           ) : (
             <Button
@@ -247,14 +251,14 @@ export function RegisterClient() {
               disabled={loading}
               onClick={() => void runPreparation()}
             >
-              {loading ? "Checking..." : "Check again"}
+              {loading ? t("checking") : t("checkAgain")}
             </Button>
           )}
         </div>
       ) : showDomainStep ? (
         <form method="post" onSubmit={onDomainSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="domain">Primary domain</Label>
+            <Label htmlFor="domain">{t("primaryDomain")}</Label>
             <Input
               id="domain"
               name="domain"
@@ -270,20 +274,20 @@ export function RegisterClient() {
               }}
             />
             <p className="text-xs leading-5 text-neutral-500">
-              The domain must already be a Cloudflare zone on this account.
+              {t("domainHint")}
             </p>
           </div>
           <div className="flex items-center justify-between gap-4 rounded-2xl bg-neutral-50 px-4 py-3">
             <div>
-              <Label htmlFor="setup-enable-sending">Enable sending</Label>
+              <Label htmlFor="setup-enable-sending">{ts("label")}</Label>
               <p className="mt-1 text-xs leading-5 text-neutral-500">
                 {domainChecking
-                  ? "Checking Cloudflare access..."
+                  ? ts("checkingAccess")
                   : domainCheck
                     ? enableSending
-                      ? "Required to send email."
-                      : "Receive-only mode."
-                    : "Enter the domain and leave the field to verify it."}
+                      ? ts("required")
+                      : ts("receiveOnly")
+                    : ts("hint")}
               </p>
             </div>
             <Switch
@@ -296,7 +300,7 @@ export function RegisterClient() {
           {domainCheck && (
             <div className="flex items-center gap-3 rounded-2xl bg-green-50 px-4 py-3 text-sm text-green-700">
               <CheckCircle2 className="h-4 w-4" />
-              Domain found in Cloudflare as {domainCheck.zone.name}
+              {ts("found", { zone: domainCheck.zone.name })}
             </div>
           )}
           {error && (
@@ -309,13 +313,13 @@ export function RegisterClient() {
             className="h-11 w-full rounded-full px-6 active:scale-[0.98]"
             disabled={loading || domainChecking}
           >
-            {loading ? "Adding domain..." : "Continue"}
+            {loading ? tc("adding") : tc("continue")}
           </Button>
         </form>
       ) : (
         <form method="post" onSubmit={onSubmit} className="space-y-5">
           <div className="space-y-2">
-            <Label htmlFor="username">Username</Label>
+            <Label htmlFor="username">{t("username")}</Label>
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 relative">
               <Input
                 id="username"
@@ -331,7 +335,7 @@ export function RegisterClient() {
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{tc("password")}</Label>
             <Input
               id="password"
               name="password"
@@ -343,7 +347,7 @@ export function RegisterClient() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="resetEmail">Recovery email</Label>
+            <Label htmlFor="resetEmail">{t("recoveryEmail")}</Label>
             <Input
               id="resetEmail"
               name="resetEmail"
@@ -365,7 +369,7 @@ export function RegisterClient() {
             className="h-11 w-full rounded-full px-6 active:scale-[0.98] mt-8"
             disabled={loading || hasAdminAccount === null || hasPrimaryDomain === null}
           >
-            {loading ? "Creating..." : "Create account"}
+            {loading ? tc("creating") : t("createAccount")}
           </Button>
         </form>
       )}

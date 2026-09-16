@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useIsFetching } from "@tanstack/react-query";
 import { useBranding } from "@/components/branding-provider";
 import { PageLoadingContext } from "@/components/page-loading";
@@ -11,6 +12,7 @@ const COMPLETION_TIME = 220;
 const MAXIMUM_DATA_WAIT = 10_000;
 
 export function LoadingTransition({ children, ready }: LoadingTransitionProps) {
+	const t = useTranslations("shell");
 	const branding = useBranding();
 	const startedAt = useRef(Date.now());
 	const [progress, setProgress] = useState(8);
@@ -80,7 +82,7 @@ export function LoadingTransition({ children, ready }: LoadingTransitionProps) {
 					</div>
 				)}
 				<div
-					aria-label="Loading"
+					aria-label={t("loading")}
 					aria-live="polite"
 					className={`fixed inset-0 z-[100] flex items-center justify-center bg-[#f6f8fc] transition-opacity duration-300 ${
 						loaderVisible ? "opacity-100" : "pointer-events-none opacity-0"
@@ -90,7 +92,7 @@ export function LoadingTransition({ children, ready }: LoadingTransitionProps) {
 						<img
 							src={iconUrl}
 							onError={() => setIconUrl("/icon-96.png")}
-							alt={`${branding.appName} icon`}
+							alt={t("appIcon", { name: branding.appName })}
 							className="h-20 w-20 rounded-2xl object-contain"
 						/>
 						<div className="w-full">

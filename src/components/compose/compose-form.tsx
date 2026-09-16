@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { FileText, Forward, Minimize2, Paperclip, Reply, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function ComposeForm({
 	onClose?: () => void;
 }) {
 	const router = useRouter();
+	const t = useTranslations("compose");
 	const { selectedMailbox, setSelectedMailbox, mailboxes } = useSelectedMailbox();
 	const [draftId, setDraftId] = useState<string | null>(null);
 	const [to, setTo] = useState<string[]>([]);
@@ -140,7 +142,7 @@ export function ComposeForm({
 			})
 			.catch((err) => {
 				if (cancelled) return;
-				const message = err instanceof Error ? err.message : "Failed to load draft";
+				const message = err instanceof Error ? err.message : t("loadDraftFailed");
 				setToast({ type: "error", message });
 			})
 			.finally(() => {
@@ -150,7 +152,7 @@ export function ComposeForm({
 		return () => {
 			cancelled = true;
 		};
-	}, [draftIdToLoad]);
+	}, [draftIdToLoad, t]);
 
 	useEffect(() => {
 		if (!loadedDraftMailboxId) return;
@@ -218,16 +220,16 @@ export function ComposeForm({
 	async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
 		event.preventDefault();
 		if (to.length === 0) {
-			setToast({ type: "error", message: "Add at least one recipient" });
+			setToast({ type: "error", message: t("addRecipient") });
 			return;
 		}
 		const invalid = [...to, ...cc, ...bcc].find((entry) => !isValidRecipient(entry));
 		if (invalid) {
-			setToast({ type: "error", message: `"${invalid}" is not a valid email address` });
+			setToast({ type: "error", message: t("invalidEmail", { email: invalid }) });
 			return;
 		}
 		if (!hasMeaningfulHtml(html) && !quotedHtml) {
-			setToast({ type: "error", message: "Write a message before sending" });
+			setToast({ type: "error", message: t("writeMessage") });
 			return;
 		}
 		setLoading(true);
@@ -253,7 +255,7 @@ export function ComposeForm({
 		setLoading(false);
 
 		if (!res.ok) {
-			setToast({ type: "error", message: data.error ?? "Send failed" });
+			setToast({ type: "error", message: data.error ?? t("sendFailed") });
 			return;
 		}
 
@@ -275,7 +277,7 @@ export function ComposeForm({
 		setQuotedHtml(null);
 		setAttachments([]);
 		setScheduledAt(null);
-		setToast({ type: "success", message: data.scheduled ? "Message scheduled" : "Message sent" });
+		setToast({ type: "success", message: data.scheduled ? t("messageScheduled") : t("messageSent") });
 		window.dispatchEvent(new Event("mailflare:messages-changed"));
 	}
 
@@ -288,7 +290,7 @@ export function ComposeForm({
 			const res = await authFetch(`/api/drafts/${draftId}`, { method: "DELETE" });
 			if (!res.ok) {
 				setDeletingDraft(false);
-				setToast({ type: "error", message: "Could not delete draft" });
+				setToast({ type: "error", message: t("deleteDraftFailed") });
 				return;
 			}
 		}
@@ -320,7 +322,7 @@ export function ComposeForm({
 		if (!draftId) return;
 		const res = await authFetch(`/api/drafts/${draftId}/attachments/${attachmentId}`, { method: "DELETE" });
 		if (!res.ok) {
-			setToast({ type: "error", message: "Could not remove attachment" });
+			setToast({ type: "error", message: t("removeAttachmentFailed") });
 			return;
 		}
 		setStoredAttachments((current) => current.filter((item) => item.id !== attachmentId));
@@ -338,15 +340,15 @@ export function ComposeForm({
 			);
 
 		if (nextCount > 10) {
-			setToast({ type: "error", message: "A message can include at most 10 attachments" });
+			setToast({ type: "error", message: t("tooManyAttachments") });
 			return;
 		}
 		if (nextFiles.some((file) => file.size > 10 * 1024 * 1024)) {
-			setToast({ type: "error", message: "Each attachment must be 10 MB or smaller" });
+			setToast({ type: "error", message: t("attachmentTooLarge") });
 			return;
 		}
 		if (totalSize > 20 * 1024 * 1024) {
-			setToast({ type: "error", message: "Attachments must total 20 MB or less" });
+			setToast({ type: "error", message: t("attachmentsTooLarge") });
 			return;
 		}
 
@@ -387,14 +389,14 @@ export function ComposeForm({
 						{threading?.inReplyTo && <Reply className="h-3.5 w-3.5 text-neutral-300" />}
 						{!threading?.inReplyTo && /^fwd?:/i.test(subject) && <Forward className="h-3.5 w-3.5 text-neutral-300" />}
 						{loadingDraft
-							? "Loading draft"
+							? t("loadingDraft")
 							: threading?.inReplyTo
-								? "Reply"
+								? t("reply")
 								: /^fwd?:/i.test(subject)
-									? "Forward"
+									? t("forward")
 									: draftId
-										? "Draft saved"
-										: "New Message"}
+										? t("draftSaved")
+										: t("newMessage")}
 					</span>
 					{mode === "popup" && (
 						<div className="flex items-center gap-3 text-neutral-300">
@@ -406,7 +408,7 @@ export function ComposeForm({
 					)}
 				</div>
 				<div className="border-b border-neutral-100 px-4 py-1 flex flex-row items-center">
-					<Label htmlFor={`${mode}-from`} className="text-sm text-neutral-500">From</Label>
+					<Label htmlFor={`${mode}-from`} className="text-sm text-neutral-500">{t("from")}</Label>
 					<Select
 						id={`${mode}-from`}
 						value={selectedMailbox && selectedFrom ? `${selectedMailbox.id}|${selectedFrom}` : ""}
@@ -417,7 +419,7 @@ export function ComposeForm({
 						className="h-8 px-0 py-1 text-sm shadow-none focus-visible:ring-0"
 						containerClassName="border-0 flex-1"
 					>
-						{senderOptions.length === 0 && <option value="">Select a mailbox first</option>}
+						{senderOptions.length === 0 && <option value="">{t("selectMailboxFirst")}</option>}
 						{senderOptions.map(({ mailbox, address }) => (
 							<option key={`${mailbox.id}|${address}`} value={`${mailbox.id}|${address}`}>{address}</option>
 						))}
@@ -425,22 +427,22 @@ export function ComposeForm({
 				</div>
 				<RecipientInput
 					id={`${mode}-to`}
-					label="To"
+					label={t("to")}
 					value={to}
 					onChange={setTo}
-					placeholder='Recipients, or "Maya Chen" <maya@example.com>'
+					placeholder={t("toPlaceholder")}
 					required
 					disabled={loadingDraft}
 					trailing={
 						<>
 							{!showCc && (
 								<button type="button" className="rounded px-1 hover:text-neutral-800" onClick={() => setShowCc(true)}>
-									Cc
+									{t("cc")}
 								</button>
 							)}
 							{!showBcc && (
 								<button type="button" className="rounded px-1 hover:text-neutral-800" onClick={() => setShowBcc(true)}>
-									Bcc
+									{t("bcc")}
 								</button>
 							)}
 						</>
@@ -449,10 +451,10 @@ export function ComposeForm({
 				{showCc && (
 					<RecipientInput
 						id={`${mode}-cc`}
-						label="Cc"
+						label={t("cc")}
 						value={cc}
 						onChange={setCc}
-						placeholder="Carbon copy"
+						placeholder={t("ccPlaceholder")}
 						disabled={loadingDraft}
 						autoFocus={!loadingDraft && cc.length === 0}
 					/>
@@ -460,34 +462,34 @@ export function ComposeForm({
 				{showBcc && (
 					<RecipientInput
 						id={`${mode}-bcc`}
-						label="Bcc"
+						label={t("bcc")}
 						value={bcc}
 						onChange={setBcc}
-						placeholder="Blind carbon copy, hidden from other recipients"
+						placeholder={t("bccPlaceholder")}
 						disabled={loadingDraft}
 						autoFocus={!loadingDraft && bcc.length === 0}
 					/>
 				)}
 				<div className="border-b border-neutral-100 px-4 py-1">
-					<Label htmlFor={`${mode}-subject`} className="sr-only">Subject</Label>
+					<Label htmlFor={`${mode}-subject`} className="sr-only">{t("subject")}</Label>
 					<Input
 						id={`${mode}-subject`}
 						value={subject}
 						onChange={(event) => setSubject(event.target.value)}
-						placeholder="Subject"
+						placeholder={t("subject")}
 						required
 						disabled={loadingDraft}
 						className="h-8 border-0 px-0 py-1 shadow-none focus-visible:ring-0"
 					/>
 				</div>
-				<Label htmlFor={`${mode}-text`} className="sr-only">Body</Label>
+				<Label htmlFor={`${mode}-text`} className="sr-only">{t("body")}</Label>
 				<RichTextEditor
 					id={`${mode}-text`}
 					value={html}
 					onChange={setHtml}
 					quotedHtml={quotedHtml}
 					disabled={loadingDraft}
-					placeholder="Write your message"
+					placeholder={t("bodyPlaceholder")}
 					toolbarStart={
 						<>
 							<div className="flex items-center">
@@ -497,7 +499,7 @@ export function ComposeForm({
 									disabled={loading || loadingDraft || !fromAddr}
 									className="rounded-r-none px-4"
 								>
-									{loading ? "Sending" : scheduledAt ? "Schedule" : "Send"}
+									{loading ? t("sending") : scheduledAt ? t("schedule") : t("send")}
 								</Button>
 								<ScheduleSendMenu
 									disabled={loading || loadingDraft || !fromAddr}
@@ -517,10 +519,10 @@ export function ComposeForm({
 								className="hidden"
 								onChange={(event) => addAttachments(event.target.files)}
 							/>
-							<Tooltip label="Attach files">
+							<Tooltip label={t("attachFiles")}>
 								<button
 									type="button"
-									aria-label="Attach files"
+									aria-label={t("attachFiles")}
 									onClick={() => attachmentInput.current?.click()}
 									disabled={loading || loadingDraft}
 									className="rounded-md p-1.5 text-neutral-500 hover:bg-neutral-100 hover:text-neutral-900 disabled:pointer-events-none disabled:opacity-50"
@@ -529,10 +531,10 @@ export function ComposeForm({
 								</button>
 							</Tooltip>
 							<span className="flex-1" />
-							<Tooltip label="Delete draft">
+							<Tooltip label={t("deleteDraft")}>
 								<button
 									type="button"
-									aria-label="Delete draft"
+									aria-label={t("deleteDraft")}
 									onClick={() => void deleteDraftAndClose()}
 									disabled={loading || loadingDraft || deletingDraft}
 									className="rounded-md p-1.5 text-neutral-500 hover:bg-red-50 hover:text-red-600 disabled:pointer-events-none disabled:opacity-50"
@@ -549,7 +551,7 @@ export function ComposeForm({
 							<div
 								key={attachment.id}
 								className="flex max-w-full items-center gap-2 rounded-lg border border-neutral-200 bg-neutral-50 px-3 py-2 text-sm"
-								title="Carried over from the forwarded message"
+								title={t("forwardedAttachment")}
 							>
 								<FileText className="h-4 w-4 shrink-0 text-neutral-500" />
 								<span className="max-w-48 truncate">{attachment.filename}</span>
@@ -560,7 +562,7 @@ export function ComposeForm({
 									className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
 								>
 									<X className="h-3.5 w-3.5" />
-									<span className="sr-only">Remove attachment</span>
+									<span className="sr-only">{t("removeAttachment")}</span>
 								</button>
 							</div>
 						))}
@@ -584,7 +586,7 @@ export function ComposeForm({
 									className="rounded-full p-1 text-neutral-400 hover:bg-neutral-200 hover:text-neutral-700"
 								>
 									<X className="h-3.5 w-3.5" />
-									<span className="sr-only">Remove attachment</span>
+									<span className="sr-only">{t("removeAttachment")}</span>
 								</button>
 							</div>
 						))}

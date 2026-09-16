@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AtSign, Save, Trash2, UserPlus } from "lucide-react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -36,6 +37,7 @@ export default function MailboxSettingsPage() {
   const params = useParams<{ id: string }>();
   const mailboxId = params.id;
   const qc = useQueryClient();
+  const t = useTranslations("mailboxesAdmin");
   const [displayName, setDisplayName] = useState("");
   const [useAllDomains, setUseAllDomains] = useState(true);
   const [selectedUserId, setSelectedUserId] = useState("");
@@ -118,7 +120,7 @@ export default function MailboxSettingsPage() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h1 className="truncate text-3xl font-medium text-neutral-900">
-            Settings
+            {t("settingsTitle")}
           </h1>
           {address ? (
             <p className="mt-1 truncate no-font-mono text-sm text-neutral-500">
@@ -130,10 +132,10 @@ export default function MailboxSettingsPage() {
         </div>
         <div className="flex shrink-0 items-center gap-2">
           {mailbox.data?.type === "shared" && (
-            <Badge variant="secondary">Shared</Badge>
+            <Badge variant="secondary">{t("sharedBadge")}</Badge>
           )}
           {mailbox.data?.isPrimary && (
-            <Badge variant="secondary">Primary</Badge>
+            <Badge variant="secondary">{t("primaryBadge")}</Badge>
           )}
         </div>
       </div>
@@ -142,13 +144,13 @@ export default function MailboxSettingsPage() {
         <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
           {mailbox.error instanceof Error
             ? mailbox.error.message
-            : "Failed to load mailbox"}
+            : t("failedToLoadMailbox")}
         </p>
       )}
 
       <Card className="rounded-3xl border-0 bg-white p-6">
         <CardHeader className="py-0">
-          <CardTitle>Account</CardTitle>
+          <CardTitle>{t("accountCard")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
           {mailbox.data ? (
@@ -162,12 +164,12 @@ export default function MailboxSettingsPage() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="displayName">Name</Label>
+            <Label htmlFor="displayName">{t("name")}</Label>
             <Input
               id="displayName"
               value={displayName}
               onChange={(event) => setDisplayName(event.target.value)}
-              placeholder={mailbox.data?.localPart ?? "Mailbox name"}
+              placeholder={mailbox.data?.localPart ?? t("mailboxNamePlaceholder")}
               disabled={mailbox.isLoading || updateName.isPending}
             />
           </div>
@@ -178,9 +180,9 @@ export default function MailboxSettingsPage() {
               disabled={mailbox.isLoading || updateName.isPending}
             />
             <span>
-              <span className="block text-sm font-medium text-neutral-900">Use all domains</span>
+              <span className="block text-sm font-medium text-neutral-900">{t("useAllDomains")}</span>
               <span className="mt-1 block text-sm text-neutral-500">
-                Receive and send mail as this username on every active domain in this admin account.
+                {t("useAllDomainsHint")}
               </span>
             </span>
           </label>
@@ -188,28 +190,27 @@ export default function MailboxSettingsPage() {
             <p className="text-sm text-red-600">
               {updateName.error instanceof Error
                 ? updateName.error.message
-                : "Failed to update mailbox"}
+                : t("failedToUpdateMailbox")}
             </p>
           )}
           {updateName.isSuccess && (
-            <p className="text-sm text-green-700">Mailbox settings saved</p>
+            <p className="text-sm text-green-700">{t("mailboxSettingsSaved")}</p>
           )}
           <Button
             onClick={() => updateName.mutate()}
             disabled={mailbox.isLoading || updateName.isPending}
           >
             <Save className="h-4 w-4" />
-            {updateName.isPending ? "Saving..." : "Save changes"}
+            {updateName.isPending ? t("saving") : t("saveChanges")}
           </Button>
         </CardContent>
       </Card>
 
       <Card className="rounded-3xl border-0 bg-white p-6">
         <CardHeader className="py-0">
-          <CardTitle>Aliases</CardTitle>
+          <CardTitle>{t("aliasesTitle")}</CardTitle>
           <CardDescription>
-            Extra addresses that deliver to this mailbox. You can also send mail
-            from any alias.
+            {t("aliasesDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 pt-5">
@@ -229,7 +230,7 @@ export default function MailboxSettingsPage() {
                 type="button"
                 size="icon"
                 variant="ghost"
-                aria-label={`Remove ${alias.localPart}@${alias.hostname}`}
+                aria-label={t("removeAliasAria", { address: `${alias.localPart}@${alias.hostname}` })}
                 disabled={removeAlias.isPending}
                 onClick={() => removeAlias.mutate(alias.id)}
               >
@@ -239,21 +240,21 @@ export default function MailboxSettingsPage() {
           ))}
           {aliases.data && aliases.data.aliases.length === 0 && (
             <p className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
-              No aliases yet.
+              {t("noAliases")}
             </p>
           )}
           {aliases.isError && (
             <p className="text-sm text-red-600">
               {aliases.error instanceof Error
                 ? aliases.error.message
-                : "Failed to load aliases"}
+                : t("failedToLoadAliases")}
             </p>
           )}
           <div className="flex gap-2">
             <Input
               value={aliasLocalPart}
               onChange={(event) => setAliasLocalPart(event.target.value)}
-              placeholder="alias"
+              placeholder={t("aliasPlaceholder")}
               className="min-w-0 flex-1"
               disabled={addAlias.isPending}
             />
@@ -275,19 +276,19 @@ export default function MailboxSettingsPage() {
               onClick={() => addAlias.mutate()}
             >
               <AtSign className="h-4 w-4" />
-              {addAlias.isPending ? "Adding..." : "Add alias"}
+              {addAlias.isPending ? t("adding") : t("addAlias")}
             </Button>
           </div>
           {addAlias.isError && (
             <p className="text-sm text-red-600">
-              {addAlias.error instanceof Error ? addAlias.error.message : "Failed to add alias"}
+              {addAlias.error instanceof Error ? addAlias.error.message : t("failedToAddAlias")}
             </p>
           )}
           {removeAlias.isError && (
             <p className="text-sm text-red-600">
               {removeAlias.error instanceof Error
                 ? removeAlias.error.message
-                : "Failed to remove alias"}
+                : t("failedToRemoveAlias")}
             </p>
           )}
         </CardContent>
@@ -296,9 +297,9 @@ export default function MailboxSettingsPage() {
       {mailbox.data?.type === "shared" && (
         <Card className="rounded-3xl border-0 bg-white p-6">
           <CardHeader className="py-0">
-            <CardTitle>Shared access</CardTitle>
+            <CardTitle>{t("sharedAccessTitle")}</CardTitle>
             <CardDescription>
-              Team members added here can read, send, organize, and manage mail in this inbox.
+              {t("sharedAccessDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4 pt-5">
@@ -318,7 +319,7 @@ export default function MailboxSettingsPage() {
                   type="button"
                   size="icon"
                   variant="ghost"
-                  aria-label={`Remove ${member.userName}`}
+                  aria-label={t("removeMemberAria", { name: member.userName })}
                   disabled={removeMember.isPending}
                   onClick={() => removeMember.mutate(member.userId)}
                 >
@@ -328,14 +329,14 @@ export default function MailboxSettingsPage() {
             ))}
             {sharedAccess.data && sharedAccess.data.members.length === 0 && (
               <p className="rounded-2xl bg-neutral-50 px-4 py-3 text-sm text-neutral-500">
-                No Team members have access yet.
+                {t("noMembers")}
               </p>
             )}
             {sharedAccess.isError && (
               <p className="text-sm text-red-600">
                 {sharedAccess.error instanceof Error
                   ? sharedAccess.error.message
-                  : "Failed to load shared access"}
+                  : t("failedToLoadSharedAccess")}
               </p>
             )}
             <div className="flex gap-2">
@@ -344,7 +345,7 @@ export default function MailboxSettingsPage() {
                 onChange={(event) => setSelectedUserId(event.target.value)}
                 className="h-10 min-w-0 flex-1 text-sm"
               >
-                <option value="">Choose an account</option>
+                <option value="">{t("chooseAccount")}</option>
                 {(sharedAccess.data?.availableUsers ?? [])
                   .filter(
                     (account) =>
@@ -362,12 +363,12 @@ export default function MailboxSettingsPage() {
                 onClick={() => addMember.mutate()}
               >
                 <UserPlus className="h-4 w-4" />
-                {addMember.isPending ? "Adding..." : "Add user"}
+                {addMember.isPending ? t("adding") : t("addUser")}
               </Button>
             </div>
             {addMember.isError && (
               <p className="text-sm text-red-600">
-                {addMember.error instanceof Error ? addMember.error.message : "Failed to add account"}
+                {addMember.error instanceof Error ? addMember.error.message : t("failedToAddAccount")}
               </p>
             )}
           </CardContent>
@@ -375,12 +376,9 @@ export default function MailboxSettingsPage() {
       )}
       <Card className="rounded-3xl border-0 bg-white p-6">
         <CardHeader className="py-0">
-          <CardTitle className="text-red-700">Danger zone</CardTitle>
+          <CardTitle className="text-red-700">{t("dangerZone")}</CardTitle>
           <CardDescription>
-            Deleting this mailbox removes its Cloudflare Email Routing rule, so
-            new mail sent to {address || "this address"} will no longer be
-            accepted. Messages already received are kept in the database but
-            will no longer appear in any inbox. This cannot be undone.
+            {t("dangerZoneDescription", { address: address || t("thisAddress") })}
           </CardDescription>
         </CardHeader>
         <CardContent className="pt-5">
@@ -388,7 +386,7 @@ export default function MailboxSettingsPage() {
             <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
               {removeMailbox.error instanceof Error
                 ? removeMailbox.error.message
-                : "Failed to delete mailbox"}
+                : t("failedToDeleteMailbox")}
             </p>
           )}
           <Button
@@ -398,7 +396,7 @@ export default function MailboxSettingsPage() {
             onClick={() => {
               if (
                 !window.confirm(
-                  `Delete ${address}? This removes its email routing rule and cannot be undone.`,
+                  t("deleteConfirm", { address }),
                 )
               )
                 return;
@@ -406,7 +404,7 @@ export default function MailboxSettingsPage() {
             }}
           >
             <Trash2 className="h-4 w-4" />
-            {removeMailbox.isPending ? "Deleting..." : "Delete mailbox"}
+            {removeMailbox.isPending ? t("deleting") : t("deleteMailbox")}
           </Button>
         </CardContent>
       </Card>

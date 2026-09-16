@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { authFetch } from "@/lib/auth/client";
 import { Switch } from "@/components/ui/switch";
 
 export function SpamFilterSettings() {
+	const t = useTranslations("spamFilter");
 	const [enabled, setEnabled] = useState(true);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState<string | null>(null);
@@ -13,12 +15,12 @@ export function SpamFilterSettings() {
 		void authFetch("/api/settings/spam")
 			.then(async (response) => {
 				const data = await response.json() as { enabled?: boolean; error?: string };
-				if (!response.ok) throw new Error(data.error ?? "Failed to load spam filter settings");
+				if (!response.ok) throw new Error(data.error ?? t("failedToLoad"));
 				setEnabled(data.enabled !== false);
 			})
-			.catch((nextError) => setError(nextError instanceof Error ? nextError.message : "Failed to load spam filter settings"))
+			.catch((nextError) => setError(nextError instanceof Error ? nextError.message : t("failedToLoad")))
 			.finally(() => setLoading(false));
-	}, []);
+	}, [t]);
 
 	async function updateEnabled(nextEnabled: boolean) {
 		const previous = enabled;
@@ -32,11 +34,11 @@ export function SpamFilterSettings() {
 				body: JSON.stringify({ enabled: nextEnabled }),
 			});
 			const data = await response.json() as { enabled?: boolean; error?: string };
-			if (!response.ok) throw new Error(data.error ?? "Failed to update spam filter settings");
+			if (!response.ok) throw new Error(data.error ?? t("failedToUpdate"));
 			setEnabled(data.enabled !== false);
 		} catch (nextError) {
 			setEnabled(previous);
-			setError(nextError instanceof Error ? nextError.message : "Failed to update spam filter settings");
+			setError(nextError instanceof Error ? nextError.message : t("failedToUpdate"));
 		} finally {
 			setLoading(false);
 		}
@@ -46,10 +48,10 @@ export function SpamFilterSettings() {
 		<div>
 			<label className="flex items-start gap-3 rounded-xl bg-neutral-50 p-4">
 				<span className="flex-1">
-					<span className="block text-sm font-medium text-neutral-900">Spam Filter</span>
-					<span className="mt-1 block text-sm text-neutral-500">Analyze incoming messages locally and detect high-confidence spam</span>
+					<span className="block text-sm font-medium text-neutral-900">{t("spamFilter")}</span>
+					<span className="mt-1 block text-sm text-neutral-500">{t("spamFilterHint")}</span>
 				</span>
-				<Switch checked={enabled} disabled={loading} onCheckedChange={(value) => void updateEnabled(value)} aria-label="Enable spam filter" />
+				<Switch checked={enabled} disabled={loading} onCheckedChange={(value) => void updateEnabled(value)} aria-label={t("enableSpamFilterAria")} />
 			</label>
 			{error && <p className="mt-2 px-4 text-sm text-red-600">{error}</p>}
 		</div>

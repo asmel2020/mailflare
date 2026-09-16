@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +17,7 @@ import {
 
 export default function AccountDetailsPage() {
 	const { id } = useParams<{ id: string }>();
+	const t = useTranslations("accountsAdmin");
 	const [account, setAccount] = useState<ManagedAccount | null>(null);
 	const [saving, setSaving] = useState(false);
 	const [message, setMessage] = useState<string | null>(null);
@@ -24,8 +26,8 @@ export default function AccountDetailsPage() {
 	useEffect(() => {
 		void fetchManagedAccount(id)
 			.then(setAccount)
-			.catch((error) => setMessage(error instanceof Error ? error.message : "Unable to load account"));
-	}, [id]);
+			.catch((error) => setMessage(error instanceof Error ? error.message : t("unableToLoadAccount")));
+	}, [id, t]);
 
 	async function saveDetails() {
 		if (!account) return;
@@ -34,9 +36,9 @@ export default function AccountDetailsPage() {
 		try {
 			await saveManagedAccount(account);
 			setAccount({ ...account, newPassword: "" });
-			setMessage(account.newPassword ? "Account details updated and password reset" : "Account details updated");
+			setMessage(account.newPassword ? t("accountUpdatedPassword") : t("accountUpdated"));
 		} catch (error) {
-			setMessage(error instanceof Error ? error.message : "Unable to update account");
+			setMessage(error instanceof Error ? error.message : t("unableToUpdateAccount"));
 		} finally {
 			setSaving(false);
 		}
@@ -49,17 +51,17 @@ export default function AccountDetailsPage() {
 			setAccount({ ...account, hasAvatar: true });
 			setAvatarVersion(Date.now());
 		} catch (error) {
-			setMessage(error instanceof Error ? error.message : "Unable to update avatar");
+			setMessage(error instanceof Error ? error.message : t("unableToUpdateAvatar"));
 		}
 	}
 
-	if (!account) return <p className="text-sm text-neutral-500">{message ?? "Loading account..."}</p>;
+	if (!account) return <p className="text-sm text-neutral-500">{message ?? t("loadingAccount")}</p>;
 
 	return (
 		<div className="space-y-6">
 			<div>
-				<h1 className="text-3xl font-medium text-neutral-900">Details</h1>
-				<p className="mt-2 text-sm text-neutral-500">Update this account&apos;s profile and status.</p>
+				<h1 className="text-3xl font-medium text-neutral-900">{t("detailsTitle")}</h1>
+				<p className="mt-2 text-sm text-neutral-500">{t("detailsDescription")}</p>
 			</div>
 			<section className="space-y-5 rounded-3xl bg-white p-6">
 				<div className="flex items-center gap-4">
@@ -72,34 +74,34 @@ export default function AccountDetailsPage() {
 					<Label className="cursor-pointer">
 						<span className="inline-flex h-9 items-center gap-2 rounded-md border border-neutral-200 px-3 text-sm">
 							<Upload className="h-4 w-4" />
-							Change avatar
+							{t("changeAvatar")}
 						</span>
 						<Input type="file" accept="image/jpeg,image/png,image/webp,image/gif" className="sr-only" onChange={(event) => void uploadAvatar(event.target.files?.[0])} />
 					</Label>
 				</div>
 				<div className="space-y-2">
-					<Label htmlFor="account-email">Email</Label>
+					<Label htmlFor="account-email">{t("email")}</Label>
 					<Input id="account-email" value={account.email} readOnly className="bg-neutral-50 text-neutral-500" />
 				</div>
 				<div className="space-y-2">
-					<Label htmlFor="account-name">Name</Label>
+					<Label htmlFor="account-name">{t("name")}</Label>
 					<Input id="account-name" value={account.name} onChange={(event) => setAccount({ ...account, name: event.target.value })} />
 				</div>
 				{account.canForwardEmail && <div className="space-y-2">
-					<Label htmlFor="forwarding-email">Forwarding email (optional)</Label>
+					<Label htmlFor="forwarding-email">{t("forwardingEmail")}</Label>
 					<Input
 						id="forwarding-email"
 						type="email"
 						value={account.forwardingEmail ?? ""}
 						onChange={(event) => setAccount({ ...account, forwardingEmail: event.target.value || null })}
-						placeholder="destination@example.com"
+						placeholder={t("forwardingPlaceholder")}
 					/>
 					<p className="text-xs leading-5 text-neutral-500">
-						Incoming mail will also be sent to this verified Cloudflare Email Routing destination.
+						{t("forwardingHint")}
 					</p>
 				</div>}
 				<div className="space-y-2">
-					<Label htmlFor="account-new-password">Reset password (optional)</Label>
+					<Label htmlFor="account-new-password">{t("resetPassword")}</Label>
 					<Input
 						id="account-new-password"
 						type="password"
@@ -107,18 +109,18 @@ export default function AccountDetailsPage() {
 						minLength={8}
 						value={account.newPassword ?? ""}
 						onChange={(event) => setAccount({ ...account, newPassword: event.target.value })}
-						placeholder="Leave blank to keep the current password"
+						placeholder={t("resetPasswordPlaceholder")}
 					/>
 					<p className="text-xs leading-5 text-neutral-500">
-						Setting a password signs this account out everywhere. Share it with the user through another channel.
+						{t("resetPasswordHint")}
 					</p>
 				</div>
 				<label className="flex items-center gap-3 text-sm">
 					<Checkbox checked={!account.disabled} onChange={(event) => setAccount({ ...account, disabled: !event.target.checked })} />
-					Account enabled
+					{t("accountEnabled")}
 				</label>
 				<Button onClick={() => void saveDetails()} disabled={saving || !account.name.trim()}>
-					{saving ? "Saving..." : "Save details"}
+					{saving ? t("saving") : t("saveDetails")}
 				</Button>
 			</section>
 			{message && <p className="text-sm text-neutral-500">{message}</p>}

@@ -8,6 +8,8 @@ export const users = sqliteTable("users", {
 	forwardingEmail: text("forwarding_email"),
 	passwordHash: text("password_hash").notNull(),
 	name: text("name").notNull(),
+	// Preferred UI language (BCP-47 short code). Null means "follow the browser".
+	locale: text("locale"),
 	avatarKey: text("avatar_key"),
 	role: text("role", { enum: ["admin", "user"] }).notNull().default("user"),
 	disabled: integer("disabled", { mode: "boolean" }).notNull().default(false),
@@ -566,6 +568,8 @@ export const backupSettings = sqliteTable("backup_settings", {
 export const appSettings = sqliteTable("app_settings", {
 	id: text("id").primaryKey(),
 	appName: text("app_name").notNull().default("Mailflare"),
+	// Site-wide fallback language; null means "follow the visitor's browser".
+	defaultLocale: text("default_locale"),
 	iconKey: text("icon_key"),
 	updatedAt: integer("updated_at", { mode: "timestamp" })
 		.notNull()

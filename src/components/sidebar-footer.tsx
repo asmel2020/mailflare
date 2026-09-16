@@ -1,12 +1,14 @@
 "use client";
 
 import packageJson from "../../package.json";
+import { useTranslations } from "next-intl";
 import { useSidebar } from "./sidebar-state";
 import { useShortcuts } from "./shortcuts";
 import { Keyboard } from "lucide-react";
 
 export function SidebarFooter() {
 	const { minimal } = useSidebar();
+	const t = useTranslations("nav");
 	const { openHelpModal, shortcutsEnabled, shortcutsPreferenceLoading } = useShortcuts();
 	if (minimal) return null;
 
@@ -20,7 +22,7 @@ export function SidebarFooter() {
         >
           <span className="flex items-center gap-1.5">
             <Keyboard className="w-3.5 h-3.5 text-neutral-400" />
-            Shortcuts
+            {t("shortcuts")}
           </span>
           <kbd className="px-1.5 py-0.5 font-mono text-[10px] bg-white border border-neutral-200 rounded text-neutral-500 shadow-2xs">
             ?
@@ -28,7 +30,7 @@ export function SidebarFooter() {
         </button>
       )}
       <p className="px-1 text-[11px] text-neutral-400">
-        Powered by{" "}
+        {t("poweredBy")}{" "}
         <a
           href={`https://mailflare.co/?ref=${typeof window !== "undefined" ? location.hostname : ""}&v=${packageJson.version}`}
           target="_blank"
