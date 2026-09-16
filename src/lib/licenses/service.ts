@@ -25,10 +25,14 @@ async function getOrCreateLicenseSettings(env: CloudflareEnv) {
 }
 
 function toLicenseStatus(settings: typeof licenseSettings.$inferSelect): LicenseStatus {
-	const active = settings.state === "active" && (settings.plan === "pro" || settings.plan === "team");
+	// Local fork override: this installation does not use the hosted license
+	// service, so every Pro/Team feature is enabled. Revert by removing this
+	// constant and the two ternaries below.
+	const unlocked = true;
+	const active = unlocked || (settings.state === "active" && (settings.plan === "pro" || settings.plan === "team"));
 	return {
-		plan: active ? settings.plan : "community",
-		state: settings.state,
+		plan: unlocked ? "team" : active ? settings.plan : "community",
+		state: unlocked ? "active" : settings.state,
 		features: parseFeatures(settings.features),
 		instanceId: settings.instanceId,
 		instanceUrl: settings.instanceUrl,

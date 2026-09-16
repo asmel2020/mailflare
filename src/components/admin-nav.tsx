@@ -63,7 +63,9 @@ export function AdminNav({ className }: { className?: string }) {
         {sections.map((section) => {
           const links = section.links.filter(
             (link) =>
-              link.href !== "/branding" || branding.canCustomizeBranding,
+              (link.href !== "/branding" || branding.canCustomizeBranding) &&
+              // Local fork override: the license page is not used here.
+              link.href !== "/licenses",
           );
           if (links.length === 0) return null;
 
