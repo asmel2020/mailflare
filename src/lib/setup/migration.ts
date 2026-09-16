@@ -32,6 +32,7 @@ const MIGRATION_NAMES = [
 	"0030_add_message_search_index.sql",
 	"0031_add_password_reset_and_mfa.sql",
 	"0032_add_locale.sql",
+	"0033_add_api_key_allowlist.sql",
 ];
 
 const INITIAL_SCHEMA_SQL = `
@@ -59,7 +60,7 @@ CREATE TABLE IF NOT EXISTS folders (id text PRIMARY KEY NOT NULL, user_id text N
 CREATE UNIQUE INDEX IF NOT EXISTS folders_mailbox_name_idx ON folders(mailbox_id, name);
 CREATE INDEX IF NOT EXISTS folders_user_idx ON folders(user_id);
 CREATE INDEX IF NOT EXISTS folders_mailbox_idx ON folders(mailbox_id);
-CREATE TABLE IF NOT EXISTS api_keys (id text PRIMARY KEY NOT NULL, user_id text NOT NULL REFERENCES users(id) ON DELETE cascade, name text NOT NULL, prefix text NOT NULL, key_hash text NOT NULL, scopes text NOT NULL, created_at integer NOT NULL, last_used_at integer);
+CREATE TABLE IF NOT EXISTS api_keys (id text PRIMARY KEY NOT NULL, user_id text NOT NULL REFERENCES users(id) ON DELETE cascade, name text NOT NULL, prefix text NOT NULL, key_hash text NOT NULL, scopes text NOT NULL, allowed_recipients text, created_at integer NOT NULL, last_used_at integer);
 CREATE TABLE IF NOT EXISTS messages (id text PRIMARY KEY NOT NULL, user_id text NOT NULL REFERENCES users(id) ON DELETE cascade, mailbox_id text REFERENCES mailboxes(id) ON DELETE set null, direction text NOT NULL, provider_message_id text, folder_id text REFERENCES folders(id) ON DELETE set null, from_addr text NOT NULL, to_addr text NOT NULL, cc_addr text, bcc_addr text, subject text, snippet text, text_body text, html_body text, raw_r2_key text, status text DEFAULT 'received' NOT NULL, read integer DEFAULT false NOT NULL, starred integer DEFAULT false NOT NULL, snoozed_until integer, thread_id text, in_reply_to text, references_header text, spam_score integer, spam_verdict text, spam_signals text, spam_analyzed_at integer, spam_analysis_error text, created_at integer NOT NULL);
 CREATE INDEX IF NOT EXISTS messages_user_created_idx ON messages(user_id, created_at);
 CREATE INDEX IF NOT EXISTS messages_mailbox_idx ON messages(mailbox_id);

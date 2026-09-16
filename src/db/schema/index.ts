@@ -200,6 +200,9 @@ export const apiKeys = sqliteTable("api_keys", {
 	prefix: text("prefix").notNull(),
 	keyHash: text("key_hash").notNull(),
 	scopes: text("scopes").notNull(),
+	// JSON array of allowed recipient patterns (exact address, "@domain", "*").
+	// Null means the key may send to anyone.
+	allowedRecipients: text("allowed_recipients"),
 	createdAt: integer("created_at", { mode: "timestamp" })
 		.notNull()
 		.$defaultFn(() => new Date()),

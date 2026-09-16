@@ -143,11 +143,24 @@ export const createAccountSchema = z.object({
 	),
 });
 
+export const allowedRecipientSchema = z.string().trim().min(1).max(255);
+
 export const createUserAccountSchema = z.object({
 	username: z.string().trim().min(1).max(64).regex(/^[a-zA-Z0-9._%+-]+$/),
 	domainId: z.string().min(1),
-	password: z.string().min(8).max(128),
+	// Optional: when omitted the server generates a random password that is not
+	// returned, so an agent account can be key-only.
+	password: z.string().min(8).max(128).optional(),
 	role: z.enum(["admin", "user"]).default("user"),
+	/** Mint an API key for the new account; its secret is returned once. */
+	generateApiKey: z.boolean().default(true),
+	/** Recipients the new key may send to; empty means no restriction. */
+	allowedRecipients: z.array(allowedRecipientSchema).max(200).optional(),
+});
+
+export const updateApiKeySchema = z.object({
+	name: z.string().trim().min(1).max(100).optional(),
+	allowedRecipients: z.array(allowedRecipientSchema).max(200).nullable().optional(),
 });
 
 export const updateAccountSchema = z.object({

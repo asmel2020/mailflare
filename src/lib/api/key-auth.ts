@@ -2,6 +2,7 @@ import { and, eq, lt, or, isNull } from "drizzle-orm";
 import { getDb } from "@/db";
 import { apiKeys, users } from "@/db/schema";
 import { parseScopes, verifyApiKey } from "@/lib/api-keys";
+import { parseAllowedRecipients } from "@/lib/api/allowlist";
 import type { ApiAuthResult } from "@/lib/api/key-auth-types";
 
 const LAST_USED_WRITE_INTERVAL_MS = 60_000;
@@ -29,7 +30,14 @@ export async function authenticateApiKeyValue(env: CloudflareEnv, key: string): 
 			.set({ lastUsedAt: new Date() })
 			.where(and(eq(apiKeys.id, candidate.id), or(isNull(apiKeys.lastUsedAt), lt(apiKeys.lastUsedAt, stale))));
 
-		return { userId: user.id, email: user.email, scopes: parseScopes(candidate.scopes), user };
+		return {
+			userId: user.id,
+			email: user.email,
+			scopes: parseScopes(candidate.scopes),
+			keyId: candidate.id,
+			allowedRecipients: parseAllowedRecipients(candidate.allowedRecipients),
+			user,
+		};
 	}
 	return null;
 }

@@ -22,8 +22,13 @@ export type CreateAccountResult = {
 export type CreateUserAccountInput = {
 	username: string;
 	domainId: string;
-	password: string;
+	/** Optional: the server generates a random password when omitted. */
+	password?: string;
 	role: "admin" | "user";
+	/** Mint an API key for the new account; its secret is returned once. */
+	generateApiKey: boolean;
+	/** Recipients the new key may send to; empty means no restriction. */
+	allowedRecipients?: string[];
 };
 
 export type AccountListResponse = {

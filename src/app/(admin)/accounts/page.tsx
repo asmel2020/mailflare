@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { authFetch } from "@/lib/auth/client";
 import { LicenseRequiredOverlay } from "@/components/license-required-overlay";
 import type { Account, AccountResponse, Domain } from "./types";
@@ -21,6 +22,9 @@ export default function AccountsPage() {
 	const [domainId, setDomainId] = useState("");
 	const [role, setRole] = useState<"admin" | "user">("user");
 	const [password, setPassword] = useState("");
+	const [generateApiKey, setGenerateApiKey] = useState(true);
+	const [allowedRecipients, setAllowedRecipients] = useState("");
+	const [createdKey, setCreatedKey] = useState<string | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [saving, setSaving] = useState(false);
 	const [createOpen, setCreateOpen] = useState(false);
@@ -53,12 +57,15 @@ export default function AccountsPage() {
 		setSaving(true);
 		setMessage(null);
 		try {
-			const response = await authFetch("/api/accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, domainId, password, role }) });
+			const recipients = allowedRecipients.split(/[\n,]/).map((value) => value.trim()).filter(Boolean);
+			const response = await authFetch("/api/accounts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ username, domainId, role, generateApiKey, ...(recipients.length > 0 ? { allowedRecipients: recipients } : {}), ...(password ? { password } : {}) }) });
 			const data = (await response.json()) as AccountResponse;
 			if (!response.ok) throw new Error(data.error ?? t("unableToCreateAccount"));
 			setUsername("");
 			setPassword("");
+			setAllowedRecipients("");
 			setCreateOpen(false);
+			if (data.apiKey) setCreatedKey(data.apiKey);
 			await loadAccounts();
 		} catch (error) {
 			setMessage(error instanceof Error ? error.message : t("unableToCreateAccount"));
@@ -75,9 +82,17 @@ export default function AccountsPage() {
 		</div></div>
 		<Dialog open={createOpen} onOpenChange={setCreateOpen}><DialogContent><DialogHeader><DialogTitle>{t("addUserTitle")}</DialogTitle><DialogDescription>{t("addUserDescription")}</DialogDescription></DialogHeader><form onSubmit={createAccount} className="space-y-4">
 			<div className="space-y-2"><Label htmlFor="account-username">{t("email")}</Label><div className="flex h-10 overflow-hidden rounded-md border border-neutral-200 bg-white"><Input id="account-username" value={username} onChange={(event) => setUsername(event.target.value)} placeholder={t("emailPlaceholder")} className="min-w-0 flex-1 rounded-none border-0 shadow-none" required /><span className="flex items-center text-sm text-neutral-400">@</span><Select aria-label={t("domainAria")} value={domainId} onChange={(event) => setDomainId(event.target.value)} className="max-w-[55%] bg-transparent px-3 text-sm" required><option value="">{t("selectDomain")}</option>{domains.map((domain) => <option key={domain.id} value={domain.id}>{domain.hostname}</option>)}</Select></div></div>
-			<div className="space-y-2"><Label htmlFor="account-password">{t("password")}</Label><Input id="account-password" type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} required /></div>
+			<div className="space-y-2"><Label htmlFor="account-password">{t("password")}</Label><Input id="account-password" type="password" minLength={8} value={password} onChange={(event) => setPassword(event.target.value)} /><p className="text-xs text-neutral-500">{t("passwordOptionalHint")}</p></div>
+			<div className="flex items-start gap-2"><input id="account-generate-key" type="checkbox" checked={generateApiKey} onChange={(event) => setGenerateApiKey(event.target.checked)} className="mt-1 h-4 w-4" /><div><Label htmlFor="account-generate-key">{t("generateApiKey")}</Label><p className="text-xs text-neutral-500">{t("generateApiKeyHint")}</p></div></div>
+			{generateApiKey && <div className="space-y-2"><Label htmlFor="account-allowed-recipients">{t("allowedRecipients")}</Label><Textarea id="account-allowed-recipients" rows={3} value={allowedRecipients} onChange={(event) => setAllowedRecipients(event.target.value)} placeholder={t("allowedRecipientsPlaceholder")} /><p className="text-xs text-neutral-500">{t("allowedRecipientsHint")}</p></div>}
 			<div className="space-y-2"><Label htmlFor="account-role">{t("role")}</Label><Select id="account-role" value={role} onChange={(event) => setRole(event.target.value as "admin" | "user")} className="h-10 w-full rounded-md border border-neutral-200 bg-white px-3 text-sm"><option value="user">{t("roleUser")}</option><option value="admin">{t("roleAdmin")}</option></Select></div>
 			{message && <p className="text-sm text-red-600">{message}</p>}<Button type="submit" disabled={saving || !domainId}>{saving ? t("creating") : t("createAccount")}</Button>
 		</form></DialogContent></Dialog>
+		<Dialog open={createdKey !== null} onOpenChange={(open) => { if (!open) setCreatedKey(null); }}><DialogContent><DialogHeader><DialogTitle>{t("apiKeyCreatedTitle")}</DialogTitle><DialogDescription>{t("apiKeyCreatedHint")}</DialogDescription></DialogHeader>
+			<div className="space-y-3">
+				<Input readOnly aria-label={t("keyAria")} value={createdKey ?? ""} onFocus={(event) => event.currentTarget.select()} />
+				<div className="flex gap-2"><Button type="button" variant="outline" onClick={() => { if (createdKey) void navigator.clipboard.writeText(createdKey); }}>{t("copy")}</Button><Button type="button" onClick={() => setCreatedKey(null)}>{t("done")}</Button></div>
+			</div>
+		</DialogContent></Dialog>
 	</div>;
 }

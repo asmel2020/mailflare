@@ -1020,7 +1020,19 @@
 		"navHeading": "Configuración de la cuenta",
 		"navDetails": "Detalles",
 		"navPermissions": "Permisos",
-		"navMailboxes": "Buzones"
+		"navMailboxes": "Buzones",
+		"passwordOptionalHint": "Déjalo vacío para generar una contraseña aleatoria que nunca se muestra.",
+		"generateApiKey": "Crear una clave de API para esta cuenta",
+		"generateApiKeyHint": "Se muestra una sola vez; un agente o una aplicación puede usarla en lugar de la contraseña.",
+		"allowedRecipients": "Destinatarios permitidos",
+		"allowedRecipientsHint": "Uno por línea: una dirección exacta, @dominio, o * para cualquiera. Vacío permite a cualquiera.",
+		"allowedRecipientsPlaceholder": "@ejemplo.com",
+		"apiKeyCreatedTitle": "Clave de API creada",
+		"apiKeyCreatedHint": "Cópiala ahora. Se guarda con hash y no se puede volver a mostrar.",
+		"copy": "Copiar",
+		"copied": "Copiado",
+		"done": "Listo",
+		"keyAria": "Clave de API"
 	},
 	"apiKeysAdmin": {
 		"title": "Claves de API",
@@ -1034,7 +1046,19 @@
 		"copyKey": "Copia tu clave ahora:",
 		"total": "{count} en total",
 		"noKeys": "Aún no hay claves de API",
-		"failed": "Error"
+		"failed": "Error",
+		"allowlistLabel": "Destinatarios permitidos",
+		"allowlistAnyone": "Cualquiera",
+		"allowlistHint": "Uno por línea: una dirección exacta, @dominio, o * para cualquiera.",
+		"edit": "Editar",
+		"save": "Guardar",
+		"cancel": "Cancelar",
+		"revoke": "Revocar",
+		"revokeConfirm": "¿Revocar esta clave de API? Las aplicaciones que la usen dejarán de funcionar de inmediato.",
+		"updated": "Clave actualizada",
+		"revoked": "Clave revocada",
+		"unableToUpdate": "No se pudo actualizar la clave",
+		"unableToRevoke": "No se pudo revocar la clave"
 	},
 	"backupsAdmin": {
 		"title": "Copias de seguridad de la base de datos",

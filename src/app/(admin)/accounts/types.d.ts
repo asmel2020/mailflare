@@ -21,5 +21,7 @@ export type Account = {
 export type AccountResponse = {
 	accounts?: Account[];
 	account?: Account;
+	/** Present only on the create response: the key secret, shown once. */
+	apiKey?: string | null;
 	error?: string;
 };
