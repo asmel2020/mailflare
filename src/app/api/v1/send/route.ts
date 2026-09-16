@@ -16,6 +16,11 @@ export async function POST(request: Request) {
 		return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 	}
 
+	const rate = await env.AGENT_SEND_RATE_LIMIT?.limit({ key: auth.keyId });
+	if (rate && !rate.success) {
+		return NextResponse.json({ error: "Too many sends. Try again shortly." }, { status: 429, headers: { "Retry-After": "60" } });
+	}
+
 	let body: unknown;
 	try {
 		body = await readJsonBody(request, 30 * 1024 * 1024);
