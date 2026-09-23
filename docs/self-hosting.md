@@ -79,6 +79,8 @@ and the DNS page shows what to set by hand.
 | `CF_ACCOUNT_ID`, `CF_TOKEN` | unset | Cloudflare Email Sending, and zone management if the token allows |
 | `INBOUND_WEBHOOK_SECRET` | unset | Enables `/api/inbound` for the relay Worker |
 | `TURNSTILE_SECRET_KEY` | unset | Bot protection on login and reset forms (`NEXT_PUBLIC_TURNSTILE_SITE_KEY` at build time) |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY` | unset | Web Push VAPID key pair for browser notifications ([guide](push-notifications.md)) |
+| `VAPID_SUBJECT` | `mailto:admin@localhost` | VAPID contact subject for push requests |
 
 ## Operations
 

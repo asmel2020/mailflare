@@ -23,7 +23,7 @@ Thanks to mailflare sponsors. Want to support the project? Drop [@hieuSSR](https
 - Send and receive email with attachments, rich formatting, signatures, and automatic replies.
 - Organize mail with search, custom folders, stars, snoozing, archive, spam, and trash.
 - Create routing rules to store, forward, reject, or categorize incoming messages.
-- Get real-time inbox updates and new-message notifications.
+- Get real-time inbox updates, an unread badge, and browser push notifications for new mail (installable as a PWA).
 - Import and export mail, manage contacts, and block unwanted senders.
 - Manage accounts, permissions, API keys, webhooks, audit logs, and database backups.
 
@@ -78,6 +78,7 @@ Add your Cloudflare credentials to `.dev.vars`, then open [http://localhost:3000
 - [Deployment and configuration](docs/deployment.md)
 - [API and integrations](docs/api.md)
 - [Connecting an agent over MCP](docs/mcp.md)
+- [Push notifications](docs/push-notifications.md)
 - [Troubleshooting](docs/troubleshooting.md)
 
 ## License

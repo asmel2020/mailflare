@@ -9,3 +9,9 @@ CF_TOKEN=your_api_token_with_zone_email_permissions
 # Legacy Global API Key alternative. Use this only instead of CF_TOKEN.
 # CF_EMAIL=you@example.com
 # CF_API_KEY=your_global_api_key
+
+# Optional: browser push notifications. Generate once with
+# `npx web-push generate-vapid-keys --json` (never commit real keys).
+# VAPID_PUBLIC_KEY=your_base64url_public_key
+# VAPID_PRIVATE_KEY=your_base64url_private_key
+# VAPID_SUBJECT=mailto:you@example.com

@@ -30,6 +30,16 @@ Mailflare requires this runtime value:
 
 Paste only the token secret into `CF_TOKEN`. Do not include the word `Bearer` and do not use the token ID. The token must belong to the same Cloudflare account as the domains you connect.
 
+### Optional: browser push notifications
+
+Web Push for new email is optional; Mailflare runs normally without it. Generate the VAPID pair once with `npx web-push generate-vapid-keys --json` (full steps in the [push notifications guide](push-notifications.md)) and set:
+
+- `VAPID_PUBLIC_KEY` — base64url public key.
+- `VAPID_PRIVATE_KEY` — base64url private key. Store it as a secret with `npx wrangler secret put VAPID_PRIVATE_KEY`.
+- `VAPID_SUBJECT` — optional VAPID contact, e.g. `mailto:admin@example.com`. Defaults to `mailto:admin@localhost`.
+
+Without these values, **Settings → Account → Notifications** reports that push is not configured. Do not regenerate the keys in production: doing so invalidates every existing browser subscription.
+
 ## Step 2: Complete mailflare setup
 
 1. Open the URL of the deployed `mailflare` Worker.
