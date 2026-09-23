@@ -764,6 +764,9 @@
 		"openAccountMenu": "Abrir menú de la cuenta",
 		"calendar": "Calendario",
 		"settings": "Configuración",
+		"download": "Descargar app",
+		"downloadIos": "Ábrela en Safari y usa Compartir → Añadir a pantalla de inicio.",
+		"downloadDesktop": "Abre el menú del navegador y elige Instalar app o Añadir a pantalla de inicio.",
 		"otherAccounts": "Otras cuentas",
 		"admin": "Administración",
 		"signOut": "Cerrar sesión"
