@@ -764,6 +764,9 @@
 		"openAccountMenu": "Open account menu",
 		"calendar": "Calendar",
 		"settings": "Settings",
+		"download": "Download app",
+		"downloadIos": "Open this site in Safari, then use Share and Add to Home Screen.",
+		"downloadDesktop": "Open your browser menu and choose Install app or Add to Home Screen.",
 		"otherAccounts": "Other accounts",
 		"admin": "Admin",
 		"signOut": "Sign out"

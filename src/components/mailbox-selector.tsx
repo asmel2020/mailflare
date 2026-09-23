@@ -3,11 +3,12 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { CalendarDays, Check, LogOut, Settings, ShieldCheck, UserRound, UsersRound } from "lucide-react";
+import { CalendarDays, Check, Download, LogOut, Settings, ShieldCheck, UsersRound } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { useSelectedMailbox } from "@/components/mailbox-provider";
 import { isIdentityMailbox } from "@/components/mailbox-provider-utils";
 import { useMessageCounts } from "@/hooks/use-message-counts";
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 import { authFetch } from "@/lib/auth/client";
 import { logoutClientSession } from "@/lib/auth/logout";
 import {
@@ -121,6 +122,8 @@ export function MailboxSelector() {
 	const [mailboxAvatarUrls, setMailboxAvatarUrls] = useState<Record<string, string>>({});
 	const ref = useRef<HTMLDivElement>(null);
 	const { counts } = useMessageCounts(null, open);
+	const { canInstall, isInstalled, isAppleMobile, promptInstall } = usePwaInstall();
+	const [showInstallHint, setShowInstallHint] = useState(false);
 
 	useEffect(() => {
 		function onPointerDown(event: PointerEvent) {
@@ -277,6 +280,32 @@ export function MailboxSelector() {
 							<Settings className="h-5 w-5 text-neutral-600" />
 							{t("settings")}
 						</Link>
+						{!isInstalled && (
+							<div className="mt-1">
+								<button
+									type="button"
+									onClick={() => {
+										if (canInstall) {
+											setShowInstallHint(false);
+											void promptInstall().then((accepted) => {
+												if (accepted) setOpen(false);
+											});
+										} else {
+											setShowInstallHint(true);
+										}
+									}}
+									className="flex w-full items-center gap-3 rounded-xl px-3 py-2 text-left text-sm font-medium text-neutral-700 hover:bg-[#f2f6fc]"
+								>
+									<Download className="h-5 w-5 text-neutral-600" />
+									{t("download")}
+								</button>
+								{showInstallHint && (
+									<p className="px-3 pb-1 pt-1 text-xs leading-relaxed text-neutral-500">
+										{isAppleMobile ? t("downloadIos") : t("downloadDesktop")}
+									</p>
+								)}
+							</div>
+						)}
 					</div>
 
 					{otherMailboxes.length > 0 && (
