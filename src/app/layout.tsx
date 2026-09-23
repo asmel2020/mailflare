@@ -49,6 +49,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 		<html lang={locale}>
 			<head>
 				<link rel="icon" href="/api/branding/icon"></link>
+				<script
+					dangerouslySetInnerHTML={{
+						__html:
+							'(function(){window.__mailflareInstallPrompt=null;window.addEventListener("beforeinstallprompt",function(e){e.preventDefault();window.__mailflareInstallPrompt=e;window.dispatchEvent(new Event("mailflare:install-available"))});window.addEventListener("appinstalled",function(){window.__mailflareInstallPrompt=null;window.dispatchEvent(new Event("mailflare:install-available"))})})();',
+					}}
+				/>
 			</head>
 			<body className={`${geistSans.variable} ${geistMono.variable} antialiased light`}>
 				<NextIntlClientProvider locale={locale} messages={messages}>
