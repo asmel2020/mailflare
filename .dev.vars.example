@@ -12,6 +12,7 @@ CF_TOKEN=your_api_token_with_zone_email_permissions
 
 # Optional: browser push notifications. Generate once with
 # `npx web-push generate-vapid-keys --json` (never commit real keys).
+# Use the raw base64url keys: 65-byte public point, 32-byte private scalar.
 # VAPID_PUBLIC_KEY=your_base64url_public_key
 # VAPID_PRIVATE_KEY=your_base64url_private_key
 # VAPID_SUBJECT=mailto:you@example.com

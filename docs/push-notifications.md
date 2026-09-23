@@ -20,10 +20,10 @@ npx web-push generate-vapid-keys --json
 Or without installing anything (Node only):
 
 ```bash
-node -e "const c=require('crypto');const{publicKey,privateKey}=c.generateKeyPairSync('ec',{namedCurve:'P-256'});console.log(JSON.stringify({publicKey:publicKey.export({type:'spki',format:'der'}).toString('base64url'),privateKey:privateKey.export({type:'pkcs8',format:'der'}).toString('base64url')}))"
+node -e "const c=require('crypto');const{privateKey}=c.generateKeyPairSync('ec',{namedCurve:'P-256'});const j=privateKey.export({format:'jwk'});console.log(JSON.stringify({publicKey:Buffer.concat([Buffer.from([4]),Buffer.from(j.x,'base64url'),Buffer.from(j.y,'base64url')]).toString('base64url'),privateKey:j.d}))"
 ```
 
-Both print base64url-encoded EC P-256 keys in the format Web Push expects.
+Both print base64url-encoded EC P-256 keys in the format Web Push expects: the public key is the raw 65-byte uncompressed point and the private key is the raw 32-byte scalar. A DER key (`MIG…`/`MFk…`) is also accepted — the runtime normalises it — but raw is what the tooling above produces.
 
 ## 2. Configure the runtime
 
@@ -80,6 +80,7 @@ Spam is never pushed (the same branch that suppresses realtime new-message notif
 | Symptom | Likely cause |
 |---|---|
 | Settings shows "not configured" | `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` missing in the runtime |
+| **Enable notifications** fails or does nothing | Malformed VAPID keys — the public key must be a base64url P-256 key (raw 65 bytes, or DER which is normalised). Check the browser console for `InvalidAccessError` |
 | Permission prompt never appears | Click **Enable notifications** directly; browsers block prompts not tied to a gesture |
 | Permission denied | Re-enable the site in the browser's notification settings, then click Enable again |
 | Notification appears twice | Should not happen: the page no longer calls `new Notification()`. Hard-refresh to pick up an updated `sw.js` |
