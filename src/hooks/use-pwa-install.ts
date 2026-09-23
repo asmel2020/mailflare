@@ -1,13 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import type { BeforeInstallPromptEvent } from "./use-pwa-install-types";
 
-export type BeforeInstallPromptEvent = Event & {
-	prompt: () => Promise<void>;
-	userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-};
+const INSTALL_AVAILABLE_EVENT = "mailflare:install-available";
 
-let deferredPrompt: BeforeInstallPromptEvent | null = null;
+function getStoredPrompt(): BeforeInstallPromptEvent | null {
+	if (typeof window === "undefined") return null;
+	return window.__mailflareInstallPrompt ?? null;
+}
 
 function isStandaloneDisplay() {
 	return (
@@ -30,9 +31,13 @@ function isAppleMobile() {
 	return iOS || iPadOS;
 }
 
+function isAndroidMobile() {
+	return typeof navigator !== "undefined" && /Android/i.test(navigator.userAgent);
+}
+
 export function usePwaInstall() {
-	const [canInstall, setCanInstall] = useState(
-		() => deferredPrompt !== null,
+	const [promptEvent, setPromptEvent] = useState<BeforeInstallPromptEvent | null>(
+		getStoredPrompt,
 	);
 	const isInstalled = useSyncExternalStore(
 		subscribeStandalone,
@@ -41,39 +46,41 @@ export function usePwaInstall() {
 	);
 
 	useEffect(() => {
+		// The inline head script captures the event before hydration and
+		// announces it; late events are caught by the direct listener.
+		function syncPrompt() {
+			setPromptEvent(getStoredPrompt());
+		}
+
 		function onBeforeInstallPrompt(event: Event) {
 			event.preventDefault();
-			deferredPrompt = event as BeforeInstallPromptEvent;
-			setCanInstall(true);
+			window.__mailflareInstallPrompt = event as BeforeInstallPromptEvent;
+			setPromptEvent(event as BeforeInstallPromptEvent);
 		}
 
-		function onAppInstalled() {
-			deferredPrompt = null;
-			setCanInstall(false);
-		}
-
+		window.addEventListener(INSTALL_AVAILABLE_EVENT, syncPrompt);
 		window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-		window.addEventListener("appinstalled", onAppInstalled);
 		return () => {
+			window.removeEventListener(INSTALL_AVAILABLE_EVENT, syncPrompt);
 			window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
-			window.removeEventListener("appinstalled", onAppInstalled);
 		};
 	}, []);
 
 	const promptInstall = useCallback(async () => {
-		if (!deferredPrompt) return false;
-		const prompt = deferredPrompt;
-		deferredPrompt = null;
-		setCanInstall(false);
+		const prompt = getStoredPrompt();
+		if (!prompt) return false;
+		window.__mailflareInstallPrompt = null;
+		setPromptEvent(null);
 		await prompt.prompt();
 		const choice = await prompt.userChoice;
 		return choice.outcome === "accepted";
 	}, []);
 
 	return {
-		canInstall,
+		canInstall: promptEvent !== null,
 		isInstalled,
 		isAppleMobile: isAppleMobile(),
+		isAndroidMobile: isAndroidMobile(),
 		promptInstall,
 	};
 }

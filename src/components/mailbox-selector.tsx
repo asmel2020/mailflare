@@ -122,7 +122,8 @@ export function MailboxSelector() {
 	const [mailboxAvatarUrls, setMailboxAvatarUrls] = useState<Record<string, string>>({});
 	const ref = useRef<HTMLDivElement>(null);
 	const { counts } = useMessageCounts(null, open);
-	const { canInstall, isInstalled, isAppleMobile, promptInstall } = usePwaInstall();
+	const { canInstall, isInstalled, isAppleMobile, isAndroidMobile, promptInstall } =
+		usePwaInstall();
 	const [showInstallHint, setShowInstallHint] = useState(false);
 
 	useEffect(() => {
@@ -301,7 +302,11 @@ export function MailboxSelector() {
 								</button>
 								{showInstallHint && (
 									<p className="px-3 pb-1 pt-1 text-xs leading-relaxed text-neutral-500">
-										{isAppleMobile ? t("downloadIos") : t("downloadDesktop")}
+										{isAppleMobile
+											? t("downloadIos")
+											: isAndroidMobile
+												? t("downloadAndroid")
+												: t("downloadDesktop")}
 									</p>
 								)}
 							</div>

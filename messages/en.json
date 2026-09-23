@@ -766,6 +766,7 @@
 		"settings": "Settings",
 		"download": "Download app",
 		"downloadIos": "Open this site in Safari, then use Share and Add to Home Screen.",
+		"downloadAndroid": "Open the Chrome menu (three dots) and choose Install app or Add to Home screen.",
 		"downloadDesktop": "Open your browser menu and choose Install app or Add to Home Screen.",
 		"otherAccounts": "Other accounts",
 		"admin": "Admin",
