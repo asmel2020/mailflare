@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { NextIntlClientProvider } from "next-intl";
 import { getLocale, getMessages, getTranslations } from "next-intl/server";
@@ -20,7 +20,24 @@ export async function generateMetadata(): Promise<Metadata> {
 	return {
 		title: t("appName"),
 		description: t("appDescription"),
-		icons: { icon: "/api/branding/icon" },
+		icons: {
+			icon: "/api/branding/icon",
+			apple: "/apple-touch-icon.png",
+		},
+		manifest: "/manifest.webmanifest",
+		appleWebApp: {
+			capable: true,
+			statusBarStyle: "default",
+			title: t("appName"),
+		},
+	};
+}
+
+export function generateViewport(): Viewport {
+	return {
+		themeColor: "#2563eb",
+		width: "device-width",
+		initialScale: 1,
 	};
 }
 

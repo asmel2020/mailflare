@@ -13,7 +13,7 @@ import {
 	parseNewMessageEvent,
 	REALTIME_FALLBACK_INTERVAL_MS,
 	REALTIME_HEARTBEAT_INTERVAL_MS,
-	showBrowserNewMessageNotification,
+	playNewMessageSound,
 } from "./message-realtime-utils";
 
 export function useMessagePolling(): MessageRealtimeState {
@@ -74,7 +74,7 @@ export function useMessagePolling(): MessageRealtimeState {
 				if (!event) return;
 				dispatchMessagesChanged();
 				setNotification(event);
-				showBrowserNewMessageNotification(event);
+				playNewMessageSound();
 			};
 			socket.onerror = () => socket?.close();
 			socket.onclose = scheduleReconnect;

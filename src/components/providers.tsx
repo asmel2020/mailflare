@@ -6,9 +6,16 @@ import { clearMailboxClientState } from "@/components/mailbox-provider-utils";
 import { BrandingProvider } from "@/components/branding-provider";
 import { NewMessagePopup } from "@/components/new-message-popup";
 import { useMessagePolling } from "@/hooks/use-message-polling";
+import {
+	ensurePushResubscribed,
+	registerServiceWorker,
+} from "@/hooks/push-notification-utils";
 import { clearMessageClientState } from "@/hooks/utils";
 import { clearMessageDetailCache } from "@/lib/messages/detail-cache";
-import { AUTH_SESSION_CHANGED_EVENT } from "@/lib/auth/client";
+import {
+	AUTH_SESSION_CHANGED_EVENT,
+	getClientSessionToken,
+} from "@/lib/auth/client";
 
 export function Providers({ children }: { children: React.ReactNode }) {
 	const realtime = useMessagePolling();
@@ -38,6 +45,18 @@ export function Providers({ children }: { children: React.ReactNode }) {
 		window.addEventListener(AUTH_SESSION_CHANGED_EVENT, resetUserScopedState);
 		return () => window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, resetUserScopedState);
 	}, [client]);
+
+	useEffect(() => {
+		function syncPush() {
+			if (!getClientSessionToken()) return;
+			void registerServiceWorker();
+			void ensurePushResubscribed();
+		}
+
+		syncPush();
+		window.addEventListener(AUTH_SESSION_CHANGED_EVENT, syncPush);
+		return () => window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, syncPush);
+	}, []);
 
 	return (
 		<QueryClientProvider client={client}>

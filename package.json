@@ -52,11 +52,21 @@
       },
       "CF_API_KEY": {
         "description": "Legacy Global API Key auth only. Prefer `CF_TOKEN` for new deployments."
+      },
+      "VAPID_PUBLIC_KEY": {
+        "description": "Web Push VAPID public key (base64url). Generate with `npx web-push generate-vapid-keys --json` (or any VAPID generator). Required for browser push notifications."
+      },
+      "VAPID_PRIVATE_KEY": {
+        "description": "Web Push VAPID private key (base64url). Generate once with `npx web-push generate-vapid-keys --json` and store as a secret. Required for browser push notifications."
+      },
+      "VAPID_SUBJECT": {
+        "description": "VAPID contact subject, e.g. mailto:admin@example.com. Optional; defaults to mailto:admin@localhost."
       }
     }
   },
   "license": "SEE LICENSE IN LICENSE",
   "dependencies": {
+    "@block65/webcrypto-web-push": "^2.0.0",
     "@cfworker/json-schema": "^4.1.1",
     "@modelcontextprotocol/sdk": "^1.30.0",
     "@opennextjs/cloudflare": "^1.19.9",

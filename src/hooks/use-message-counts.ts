@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { MessageCounts, MessageCountsDelta } from "./types";
 import { clearMessageCountsCache, fetchMessageCounts } from "./utils";
+import { setUnreadBadge } from "./unread-badge";
 
 const emptyCounts: MessageCounts = {
 	folders: {
@@ -33,7 +34,10 @@ export function useMessageCounts(mailboxId?: string | null, enabled = true) {
 			setIsLoading(true);
 			try {
 				const nextCounts = await fetchMessageCounts(mailboxId, force);
-				if (!cancelled) setCounts(nextCounts ?? emptyCounts);
+				if (!cancelled) {
+					setCounts(nextCounts ?? emptyCounts);
+					setUnreadBadge(nextCounts?.folders.inbox.unread ?? 0);
+				}
 			} finally {
 				if (!cancelled) setIsLoading(false);
 			}
@@ -47,16 +51,21 @@ export function useMessageCounts(mailboxId?: string | null, enabled = true) {
 		function onMessageCountsDelta(event: Event) {
 			const detail = (event as CustomEvent<MessageCountsDelta>).detail;
 			if (!detail?.inboxUnreadDelta) return;
-			setCounts((current) => ({
-				...current,
-				folders: {
-					...current.folders,
-					inbox: {
-						...current.folders.inbox,
-						unread: Math.max(0, current.folders.inbox.unread + detail.inboxUnreadDelta),
+			const delta = detail.inboxUnreadDelta;
+			setCounts((current) => {
+				const nextUnread = Math.max(0, current.folders.inbox.unread + delta);
+				setUnreadBadge(nextUnread);
+				return {
+					...current,
+					folders: {
+						...current.folders,
+						inbox: {
+							...current.folders.inbox,
+							unread: nextUnread,
+						},
 					},
-				},
-			}));
+				};
+			});
 		}
 		window.addEventListener("mailflare:messages-changed", onMessagesChanged);
 		window.addEventListener("mailflare:message-counts-changed", onMessagesChanged);
