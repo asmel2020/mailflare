@@ -1,6 +1,7 @@
 /* Mailflare service worker: Web Push notifications only (no offline shell). */
 
-const OFFLINE_URL = "/offline.html";
+// Workers assets redirect /offline.html to /offline, so cache the canonical URL.
+const OFFLINE_URL = "/offline";
 const OFFLINE_CACHE = "mailflare-offline-v1";
 
 self.addEventListener("install", (event) => {
