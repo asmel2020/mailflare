@@ -6,6 +6,8 @@ const csp = [
 	"font-src 'self' data:",
 	"connect-src 'self' ws: wss: https://challenges.cloudflare.com",
 	"frame-src https://challenges.cloudflare.com",
+	"worker-src 'self'",
+	"manifest-src 'self'",
 	"object-src 'none'",
 	"base-uri 'self'",
 	"form-action 'self'",

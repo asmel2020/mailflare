@@ -621,6 +621,29 @@ export const backups = sqliteTable(
 	],
 );
 
+export const pushSubscriptions = sqliteTable(
+	"push_subscriptions",
+	{
+		id: text("id").primaryKey(),
+		userId: text("user_id")
+			.notNull()
+			.references(() => users.id, { onDelete: "cascade" }),
+		endpoint: text("endpoint").notNull(),
+		p256dh: text("p256dh").notNull(),
+		auth: text("auth").notNull(),
+		contentEncoding: text("content_encoding").notNull().default("aes128gcm"),
+		userAgent: text("user_agent"),
+		createdAt: integer("created_at", { mode: "timestamp" })
+			.notNull()
+			.$defaultFn(() => new Date()),
+		lastUsedAt: integer("last_used_at", { mode: "timestamp" }),
+	},
+	(t) => [
+		uniqueIndex("push_subscriptions_endpoint_idx").on(t.endpoint),
+		index("push_subscriptions_user_idx").on(t.userId),
+	],
+);
+
 export const schema = {
 	users,
 	domains,
@@ -648,4 +671,5 @@ export const schema = {
 	backups,
 	appSettings,
 	licenseSettings,
+	pushSubscriptions,
 };

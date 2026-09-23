@@ -20,6 +20,7 @@ import {
 	getMailboxNotificationUserIds,
 	notifyUsersOfNewMessage,
 } from "@/lib/realtime/utils";
+import { sendWebPushToUsers } from "@/lib/push/send";
 
 export type InboundQueueMessage = {
 	from: string;
@@ -191,14 +192,16 @@ export async function processInboundMessage(
 			decision.mailbox.mailboxId,
 			decision.mailbox.userId,
 		);
-		await notifyUsersOfNewMessage(env, notificationUserIds, {
+		const notificationPayload = {
 			type: "new_message",
 			messageId,
 			mailboxId: decision.mailbox.mailboxId,
 			from: fromAddr,
 			fromName: contact?.displayName ?? null,
 			subject: parsed.subject,
-		});
+		} as const;
+		await notifyUsersOfNewMessage(env, notificationUserIds, notificationPayload);
+		await sendWebPushToUsers(env, notificationUserIds, notificationPayload);
 	}
 	await dispatchWebhooks(env, decision.mailbox.userId, "message.inbound", {
 		messageId,

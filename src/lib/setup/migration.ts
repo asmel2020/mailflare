@@ -33,6 +33,7 @@ const MIGRATION_NAMES = [
 	"0031_add_password_reset_and_mfa.sql",
 	"0032_add_locale.sql",
 	"0033_add_api_key_allowlist.sql",
+	"0034_add_push_subscriptions.sql",
 ];
 
 const INITIAL_SCHEMA_SQL = `
@@ -114,6 +115,9 @@ CREATE TABLE IF NOT EXISTS app_settings (id text PRIMARY KEY NOT NULL, app_name 
 INSERT OR IGNORE INTO app_settings (id, app_name, updated_at) VALUES ('default', 'Mailflare', unixepoch());
 CREATE TABLE IF NOT EXISTS license_settings (id text PRIMARY KEY NOT NULL, instance_id text NOT NULL, instance_url text, license_key_hash text, plan text DEFAULT 'community' NOT NULL, state text DEFAULT 'inactive' NOT NULL, features text DEFAULT '[]' NOT NULL, activated_at integer, validated_at integer, updated_at integer NOT NULL);
 CREATE UNIQUE INDEX IF NOT EXISTS license_settings_instance_id_unique ON license_settings(instance_id);
+CREATE TABLE IF NOT EXISTS push_subscriptions (id text PRIMARY KEY NOT NULL, user_id text NOT NULL, endpoint text NOT NULL, p256dh text NOT NULL, auth text NOT NULL, content_encoding text DEFAULT 'aes128gcm' NOT NULL, user_agent text, created_at integer NOT NULL, last_used_at integer, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE cascade);
+CREATE UNIQUE INDEX IF NOT EXISTS push_subscriptions_endpoint_idx ON push_subscriptions(endpoint);
+CREATE INDEX IF NOT EXISTS push_subscriptions_user_idx ON push_subscriptions(user_id);
 CREATE TABLE IF NOT EXISTS d1_migrations (id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT UNIQUE, applied_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP NOT NULL);
 `;
 

@@ -32,4 +32,10 @@ interface CloudflareEnv {
 	CF_ACCOUNT_ID?: string;
 	/** Public origin of this install (https://mail.example.com) when it sits behind a proxy. */
 	APP_URL?: string;
+	/** VAPID public key (base64url) for Web Push; client fetches it via /api/push/vapid-public-key. */
+	VAPID_PUBLIC_KEY?: string;
+	/** VAPID private key (base64url PKCS8). Keep as a secret. */
+	VAPID_PRIVATE_KEY?: string;
+	/** VAPID subject, e.g. mailto:admin@example.com. Defaults to mailto:admin@localhost. */
+	VAPID_SUBJECT?: string;
 }

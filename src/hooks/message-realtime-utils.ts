@@ -38,23 +38,44 @@ export function parseNewMessageEvent(value: string): NewMessageEvent | null {
 	}
 }
 
-export function showBrowserNewMessageNotification(event: NewMessageEvent): void {
-	if (
-		typeof Notification === "undefined" ||
-		Notification.permission !== "granted" ||
-		document.visibilityState === "visible"
-	) {
-		return;
-	}
+/**
+ * Short two-tone chime via Web Audio — no asset file required.
+ * OS-level alerts are handled by the service worker Web Push path.
+ */
+export function playNewMessageSound(): void {
+	if (typeof window === "undefined") return;
+	if (document.visibilityState !== "visible") return;
 
-	const notification = new Notification(event.subject || "New email", {
-		body: `From ${event.fromName ?? event.from}`,
-		icon: "/icon-96.png",
-		tag: event.messageId,
-	});
-	notification.onclick = () => {
-		window.focus();
-		window.location.assign(`/inbox/${event.messageId}`);
-		notification.close();
-	};
+	try {
+		const AudioContextCtor =
+			window.AudioContext ||
+			(window as unknown as { webkitAudioContext?: typeof AudioContext })
+				.webkitAudioContext;
+		if (!AudioContextCtor) return;
+
+		const context = new AudioContextCtor();
+		const now = context.currentTime;
+		const gain = context.createGain();
+		gain.gain.setValueAtTime(0.0001, now);
+		gain.gain.exponentialRampToValueAtTime(0.08, now + 0.02);
+		gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+		gain.connect(context.destination);
+
+		const tones = [
+			{ freq: 880, start: 0, duration: 0.15 },
+			{ freq: 1174.66, start: 0.14, duration: 0.2 },
+		];
+		for (const tone of tones) {
+			const oscillator = context.createOscillator();
+			oscillator.type = "sine";
+			oscillator.frequency.setValueAtTime(tone.freq, now + tone.start);
+			oscillator.connect(gain);
+			oscillator.start(now + tone.start);
+			oscillator.stop(now + tone.start + tone.duration);
+		}
+
+		window.setTimeout(() => void context.close(), 600);
+	} catch {
+		// autoplay may be blocked until first gesture — ignore
+	}
 }

@@ -402,7 +402,24 @@
 		"twoFactorTitle": "Autenticación en dos pasos",
 		"twoFactorDescription": "Solicita un código de una aplicación de autenticación al iniciar sesión.",
 		"emailAppsTitle": "Aplicaciones de correo",
-		"emailAppsDescription": "Usa tu correo desde una aplicación de escritorio o móvil mediante JMAP."
+		"emailAppsDescription": "Usa tu correo desde una aplicación de escritorio o móvil mediante JMAP.",
+		"notificationsTitle": "Notificaciones",
+		"notificationsDescription": "Recibe alertas push en el navegador cuando llegue correo nuevo, incluso con Mailflare cerrado."
+	},
+	"pushSettings": {
+		"loading": "Cargando configuración de notificaciones...",
+		"unsupported": "Este navegador no admite notificaciones push web.",
+		"unconfigured": "Las notificaciones push no están configuradas en este servidor. Define las claves VAPID para activarlas.",
+		"isEnabled": "Las notificaciones push están activadas",
+		"isDisabled": "Las notificaciones push están desactivadas",
+		"enabledDescription": "Recibirás una alerta del navegador cuando llegue correo nuevo, incluso con esta pestaña cerrada.",
+		"disabledDescription": "Activa las notificaciones para recibir alertas cuando llegue correo nuevo.",
+		"deniedHint": "Las notificaciones están bloqueadas para este sitio. Permítelas en la configuración del sitio del navegador y vuelve a intentarlo.",
+		"enable": "Activar notificaciones",
+		"disable": "Desactivar notificaciones",
+		"working": "Procesando...",
+		"enableFailed": "No se pudieron activar las notificaciones. Inténtalo de nuevo.",
+		"disableFailed": "No se pudieron desactivar las notificaciones. Inténtalo de nuevo."
 	},
 	"accountForm": {
 		"currentPassword": "Contraseña actual",
@@ -1202,6 +1219,7 @@
 		"forbidden": "Prohibido",
 		"notFound": "No encontrado",
 		"invalidRequest": "Solicitud no válida",
+		"pushNotConfigured": "Las notificaciones push no están configuradas en este servidor",
 		"tooManyAttempts": "Demasiados intentos. Vuelve a probar en un momento.",
 		"challengeExpired": "Este intento de inicio de sesión ha caducado. Empieza de nuevo.",
 		"accountDisabled": "Cuenta deshabilitada",

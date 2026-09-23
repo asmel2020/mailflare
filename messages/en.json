@@ -402,7 +402,24 @@
 		"twoFactorTitle": "Two-factor authentication",
 		"twoFactorDescription": "Require a code from an authenticator app when signing in.",
 		"emailAppsTitle": "Email apps",
-		"emailAppsDescription": "Use your mail from a desktop or mobile app over JMAP."
+		"emailAppsDescription": "Use your mail from a desktop or mobile app over JMAP.",
+		"notificationsTitle": "Notifications",
+		"notificationsDescription": "Get browser push alerts for new email, even when Mailflare is closed."
+	},
+	"pushSettings": {
+		"loading": "Loading notification settings...",
+		"unsupported": "This browser does not support web push notifications.",
+		"unconfigured": "Push notifications are not configured on this server. Set VAPID keys to enable them.",
+		"isEnabled": "Push notifications are on",
+		"isDisabled": "Push notifications are off",
+		"enabledDescription": "You will receive a browser alert when new email arrives, even if this tab is closed.",
+		"disabledDescription": "Turn on notifications to get alerts when new email arrives.",
+		"deniedHint": "Notifications are blocked for this site. Allow them in your browser site settings, then try again.",
+		"enable": "Enable notifications",
+		"disable": "Disable notifications",
+		"working": "Working...",
+		"enableFailed": "Could not enable notifications. Please try again.",
+		"disableFailed": "Could not disable notifications. Please try again."
 	},
 	"accountForm": {
 		"currentPassword": "Current password",
@@ -1202,6 +1219,7 @@
 		"forbidden": "Forbidden",
 		"notFound": "Not found",
 		"invalidRequest": "Invalid request",
+		"pushNotConfigured": "Push notifications are not configured on this server",
 		"tooManyAttempts": "Too many attempts. Try again shortly.",
 		"challengeExpired": "This sign-in attempt has expired. Start again.",
 		"accountDisabled": "Account disabled",

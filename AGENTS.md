@@ -51,10 +51,11 @@ Read `CLAUDE.md` for the full detail. The essentials:
 - **JMAP** lives in `src/lib/jmap/` (framework-free); the Next routes only delegate. Auth is an API key with the `jmap` scope.
 - **Search** is an FTS5 external-content table (`messages_fts`, migration 0030) kept in sync by triggers; `buildSearchConditions` (`src/lib/search/conditions.ts`) turns the Gmail-style grammar into a match predicate.
 - **Folders are mostly virtual.** `messages.status` (`received`/`sent`/`draft`/`spam`/`trash`/`archived`) drives the folder views; `starred`, `snoozedUntil` and `folderId` (the `folders` table) are orthogonal. A "folder" route is usually a status filter, not a table.
+- **Web Push** lives in `src/lib/push/` (`sendWebPushToUsers` is called from `processInboundMessage` next to the realtime notify, inside the `status !== "spam"` branch). It needs `VAPID_PUBLIC_KEY` / `VAPID_PRIVATE_KEY` (optional `VAPID_SUBJECT`); without them it no-ops. Subscriptions are per user in `push_subscriptions`; the service worker is `public/sw.js` and there is **no** page-level `new Notification()` — the SW is the only OS-level alert. Client subscribe/unsubscribe is `src/hooks/push-notification-utils.ts`; routes are `/api/push/*` with `requireSessionUser`. Setup is documented in `docs/push-notifications.md`.
 
 ## Data and migrations
 
-Schema lives in one file, `src/db/schema/index.ts` (29 tables). Migrations are generated into `drizzle/migrations/`.
+Schema lives in one file, `src/db/schema/index.ts` (30 tables). Migrations are generated into `drizzle/migrations/`.
 
 `drizzle-kit generate` prompts interactively (snapshot rename conflict) and cannot run non-interactively, so recent migrations are **hand-written** in the generated style and the journal is edited by hand.
 

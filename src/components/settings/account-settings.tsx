@@ -10,6 +10,7 @@ import { MfaSettings } from "./mfa-settings";
 import { ForwardingEmailForm } from "./forwarding-email-form";
 import { MailboxSignatureForm } from "./mailbox-signature-form";
 import { ProfileForm } from "./profile-form";
+import { PushNotificationsSettings } from "./push-notifications-settings";
 import type { AccountSettingsResponse } from "./types";
 import { loadAccountSettings } from "./utils";
 
@@ -125,6 +126,16 @@ export function AccountSettings() {
 				</div>
 				<div className="space-y-4 rounded-3xl bg-white p-6">
 					<EmailClientsSettings />
+				</div>
+			</section>
+
+			<section className="space-y-4">
+				<div>
+					<h2 className="text-xl font-semibold text-neutral-900">{tPages("notificationsTitle")}</h2>
+					<p className="mt-1 text-sm text-neutral-500">{tPages("notificationsDescription")}</p>
+				</div>
+				<div className="space-y-4 rounded-3xl bg-white p-6">
+					<PushNotificationsSettings />
 				</div>
 			</section>
 		</div>
